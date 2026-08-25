@@ -18,11 +18,10 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export const Sidebar = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => {
+export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const { user, logout, isSuperAdmin, isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -51,111 +50,97 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen
   const filteredItems = navItems.filter((item) => item.visible);
 
   return (
-    <>
-      {/* Mobile Backdrop */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Sidebar Container */}
-      <aside
-        className={`fixed top-0 left-0 z-50 h-full bg-charcoal-900 text-gray-200 border-r border-charcoal-800 transition-all duration-300 flex flex-col ${
-          mobileOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'
-        } ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}
-      >
-        {/* Brand Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-charcoal-800 shrink-0">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-lg bg-black border border-gold-500 flex items-center justify-center shrink-0">
-              <Scissors className="w-5 h-5 text-gold-500 transform -rotate-45" />
-            </div>
-            {(!isCollapsed || mobileOpen) && (
-              <div className="truncate">
-                <span className="font-serif font-bold text-lg text-white tracking-wider block leading-tight">
-                  NAGULAN
-                </span>
-                <span className="text-[10px] tracking-widest text-gold-400 uppercase font-semibold">
-                  UNISEX SALON
-                </span>
-              </div>
-            )}
+    <aside
+      className={`fixed top-0 left-0 z-40 h-full bg-charcoal-900 text-gray-200 border-r border-charcoal-800 transition-all duration-300 flex flex-col w-14 sm:w-16 ${
+        isCollapsed ? 'lg:w-20' : 'lg:w-64'
+      }`}
+    >
+      {/* Brand Header */}
+      <div className="h-14 sm:h-16 px-2 lg:px-4 flex items-center justify-center lg:justify-between border-b border-charcoal-800 shrink-0">
+        <div className="flex items-center gap-3 overflow-hidden">
+          {/* Logo Badge (Always visible on mobile & desktop) */}
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black border border-gold-500 flex items-center justify-center shrink-0 shadow-sm">
+            <Scissors className="w-4 h-4 sm:w-5 sm:h-5 text-gold-500 transform -rotate-45" />
           </div>
 
-          {/* Close for Mobile */}
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-charcoal-800 lg:hidden"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Collapse Toggle for Desktop */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-charcoal-800 transition-colors"
-          >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
-        </div>
-
-        {/* User Role Badge */}
-        {(!isCollapsed || mobileOpen) && (
-          <div className="px-4 py-3 border-b border-charcoal-800/60 bg-charcoal-950/40">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400 truncate">{user?.fullName}</span>
-              <span
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                  isSuperAdmin
-                    ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
-                    : isAdmin
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
-                }`}
-              >
-                {user?.role}
-              </span>
-            </div>
+          {/* Brand Name Text (Hidden on mobile & hidden when collapsed on desktop) */}
+          <div className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:block'} truncate`}>
+            <span className="font-serif font-bold text-base text-white tracking-wider block leading-tight">
+              NAGULAN
+            </span>
+            <span className="text-[9px] tracking-widest text-gold-400 uppercase font-bold block">
+              UNISEX SALON
+            </span>
           </div>
-        )}
-
-        {/* Navigation List */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {filteredItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-gold-500/15 text-gold-400 border border-gold-500/40 font-semibold'
-                    : 'text-gray-300 hover:bg-charcoal-800 hover:text-white'
-                }`
-              }
-              title={isCollapsed ? item.label : undefined}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {(!isCollapsed || mobileOpen) && <span className="truncate">{item.label}</span>}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Logout Action */}
-        <div className="p-3 border-t border-charcoal-800 shrink-0">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-            title="Logout"
-          >
-            <LogOut className="w-5 h-5 shrink-0" />
-            {(!isCollapsed || mobileOpen) && <span>Secure Logout</span>}
-          </button>
         </div>
-      </aside>
-    </>
+
+        {/* Collapse Toggle for Desktop Only */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-charcoal-800 transition-colors"
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* User Role Badge (Desktop expanded only) */}
+      <div className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:block'} px-4 py-2.5 border-b border-charcoal-800/60 bg-charcoal-950/40 shrink-0`}>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-400 truncate max-w-[110px] text-[11px] font-medium">{user?.fullName}</span>
+          <span
+            className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+              isSuperAdmin
+                ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
+                : isAdmin
+                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                : 'bg-green-500/20 text-green-400 border border-green-500/30'
+            }`}
+          >
+            {user?.role}
+          </span>
+        </div>
+      </div>
+
+      {/* Navigation List */}
+      <nav className="flex-1 overflow-y-auto px-1.5 sm:px-2 lg:px-3 py-3 space-y-1 scrollbar-none">
+        {filteredItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              `flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                isActive
+                  ? 'bg-gold-500/20 text-gold-400 border border-gold-500/40 font-bold shadow-sm'
+                  : 'text-gray-400 hover:bg-charcoal-800 hover:text-white'
+              } ${isCollapsed ? 'lg:justify-center' : ''}`
+            }
+            title={item.label}
+          >
+            <item.icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+            <span className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:inline'} truncate`}>
+              {item.label}
+            </span>
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Logout Action */}
+      <div className="p-1.5 sm:p-2 lg:p-3 border-t border-charcoal-800 shrink-0">
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-3 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors ${
+            isCollapsed ? 'lg:justify-center' : ''
+          }`}
+          title="Secure Logout"
+        >
+          <LogOut className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+          <span className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:inline'} font-semibold truncate`}>
+            Logout
+          </span>
+        </button>
+      </div>
+    </aside>
   );
 };
 

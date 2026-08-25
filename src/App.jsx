@@ -27,12 +27,11 @@ import SettingsPage from './pages/SettingsPage';
 const ProtectedLayout = () => {
   const { user, loading } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-charcoal-950">
-        <div className="w-10 h-10 border-4 border-gold-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-gold-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -43,23 +42,18 @@ const ProtectedLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-charcoal-950 transition-colors">
-      {/* Navigation Sidebar */}
-      <Sidebar
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-        mobileOpen={mobileOpen}
-        setMobileOpen={setMobileOpen}
-      />
+      {/* Icon-Only Compact Mobile Sidebar & Full Desktop Sidebar */}
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       {/* Main Content Area */}
       <div
-        className={`transition-all duration-300 flex flex-col min-h-screen ${
+        className={`transition-all duration-300 flex flex-col min-h-screen pl-14 sm:pl-16 ${
           isCollapsed ? 'lg:pl-20' : 'lg:pl-64'
         }`}
       >
-        <Navbar setMobileOpen={setMobileOpen} />
+        <Navbar />
 
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-2 sm:p-4 md:p-6 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
