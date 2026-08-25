@@ -16,8 +16,6 @@ import ServicesPage from './pages/ServicesPage';
 import ProductsPage from './pages/ProductsPage';
 import ChairsPage from './pages/ChairsPage';
 import AttendantsPage from './pages/AttendantsPage';
-import StaffManagementPage from './pages/StaffManagementPage';
-import AdminManagementPage from './pages/AdminManagementPage';
 import CustomersPage from './pages/CustomersPage';
 import ReportsPage from './pages/ReportsPage';
 import ActivityLogsPage from './pages/ActivityLogsPage';
@@ -92,14 +90,6 @@ export const App = () => {
 
         {/* Admin & Super Admin Only */}
         <Route
-          path="/staff"
-          element={
-            <RoleGuard allowedRoles={['admin', 'superadmin']}>
-              <StaffManagementPage />
-            </RoleGuard>
-          }
-        />
-        <Route
           path="/reports"
           element={
             <RoleGuard allowedRoles={['admin', 'superadmin']}>
@@ -109,14 +99,6 @@ export const App = () => {
         />
 
         {/* Super Admin Only */}
-        <Route
-          path="/admins"
-          element={
-            <RoleGuard allowedRoles={['superadmin']}>
-              <AdminManagementPage />
-            </RoleGuard>
-          }
-        />
         <Route
           path="/activity-logs"
           element={
