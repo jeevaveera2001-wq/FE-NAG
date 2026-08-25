@@ -37,11 +37,6 @@ export const LoginPage = () => {
     }
   };
 
-  const handleQuickLogin = (roleIdentifier, rolePassword) => {
-    setIdentifier(roleIdentifier);
-    setPassword(rolePassword);
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-charcoal-950 flex flex-col justify-center items-center p-4 sm:p-6 select-none transition-colors">
       <div className="w-full max-w-xl space-y-6">
@@ -151,36 +146,6 @@ export const LoginPage = () => {
               )}
             </button>
           </form>
-
-          {/* Demo Quick Logins */}
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-charcoal-800">
-            <p className="text-[11px] font-semibold text-center text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-              One-Click Role Demonstration
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('superadmin@nagulan.com', 'SuperAdmin@123')}
-                className="p-2.5 rounded-lg border border-gold-500/40 bg-gold-500/10 hover:bg-gold-500/20 text-gold-600 dark:text-gold-400 text-xs font-semibold text-center transition-all"
-              >
-                Super Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@nagulan.com', 'Admin@123')}
-                className="p-2.5 rounded-lg border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold text-center transition-all"
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('staff@nagulan.com', 'Staff@123')}
-                className="p-2.5 rounded-lg border border-green-500/40 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-semibold text-center transition-all"
-              >
-                Staff
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
