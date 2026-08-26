@@ -17,18 +17,21 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   if (format === '80mm') {
     return (
       <div className="thermal-receipt bg-white text-black p-3 font-mono text-xs leading-relaxed max-w-[80mm] mx-auto border border-dashed border-gray-400">
-        {/* Official Brand Banner at Top */}
-        <div className="text-center pb-2 border-b border-black">
-          <div className="w-full bg-black rounded p-1 mb-2">
+        {/* Official Brand Banner at Top (High-Contrast Black & White for Thermal Receipt Printers) */}
+        <div className="text-center pb-2 border-b-2 border-black">
+          <div className="w-full bg-black rounded p-1 mb-2 thermal-banner-box">
             <img
               src={bannerSrc}
               alt="NAGULAN Unisex Salon"
               className="w-full h-auto object-contain rounded"
             />
           </div>
-          <p className="text-[10px] font-bold text-gray-900 mt-1 uppercase">{salonAddress}</p>
-          <p className="text-[9px] text-gray-700 mt-0.5 font-semibold">
-            Franchise Enquiry: <span className="font-bold text-black">{franchisePhone}</span>
+          <div className="font-serif font-black text-sm tracking-wider uppercase text-black">
+            {salonName}
+          </div>
+          <p className="text-[10px] font-bold text-black mt-0.5 uppercase tracking-tight">{salonAddress}</p>
+          <p className="text-[9px] text-black mt-0.5 font-bold">
+            Franchise Enquiry: <span>{franchisePhone}</span>
           </p>
         </div>
 
