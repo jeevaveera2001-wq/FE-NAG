@@ -1,5 +1,6 @@
 import React from 'react';
 import NagulanBanner from './NagulanBanner';
+import nagulanBannerImg from '../assets/nagulan-banner.jpg';
 
 export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   if (!bill) return null;
@@ -10,23 +11,31 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   const salonAddress = settings.address || 'Nagulan salon , Indur , Dharmapuri , PIN 636803';
   const footerMessage = settings.receiptFooterMessage || 'Thank you for visiting NAGULAN Unisex Salon';
   const subFooter = settings.receiptSubFooter || 'Visit Again';
+  const bannerSrc = settings.bannerUrl || nagulanBannerImg || '/nagulan-banner.jpg';
 
   // 80mm Thermal Receipt View
   if (format === '80mm') {
     return (
-      <div className="thermal-receipt bg-white text-black p-4 font-mono text-xs leading-relaxed max-w-[80mm] mx-auto border border-dashed border-gray-400">
-        {/* Banner */}
+      <div className="thermal-receipt bg-white text-black p-3 font-mono text-xs leading-relaxed max-w-[80mm] mx-auto border border-dashed border-gray-400">
+        {/* Official Brand Banner at Top */}
         <div className="text-center pb-2 border-b border-black">
-          <h1 className="text-base font-black tracking-wider uppercase font-serif">{salonName}</h1>
-          <p className="text-[10px] tracking-widest font-semibold mt-0.5">{tagline}</p>
-          <p className="text-[9px] text-gray-700 mt-1 font-medium">{salonAddress}</p>
-          <p className="text-[10px] mt-0.5">Franchise Enquiry: <span className="font-bold">{franchisePhone}</span></p>
+          <div className="w-full bg-black rounded p-1 mb-2">
+            <img
+              src={bannerSrc}
+              alt="NAGULAN Unisex Salon"
+              className="w-full h-auto object-contain rounded"
+            />
+          </div>
+          <p className="text-[10px] font-bold text-gray-900 mt-1 uppercase">{salonAddress}</p>
+          <p className="text-[9px] text-gray-700 mt-0.5 font-semibold">
+            Franchise Enquiry: <span className="font-bold text-black">{franchisePhone}</span>
+          </p>
         </div>
 
         {/* Bill & Customer Meta */}
         <div className="py-2 text-[10px] border-b border-dashed border-black space-y-1">
           <div className="flex justify-between">
-            <span>Bill No:</span>
+            <span className="font-semibold">Bill No:</span>
             <span className="font-bold">{bill.billNumber}</span>
           </div>
           <div className="flex justify-between">
@@ -34,20 +43,20 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             <span>{new Date(bill.billDate).toLocaleString('en-IN')}</span>
           </div>
           <div className="flex justify-between">
-            <span>Customer:</span>
+            <span className="font-semibold">Customer:</span>
             <span className="font-bold">{bill.customer?.name}</span>
           </div>
           <div className="flex justify-between">
             <span>Mobile:</span>
-            <span>{bill.customer?.mobile}</span>
+            <span className="font-mono">{bill.customer?.mobile}</span>
           </div>
           <div className="flex justify-between">
-            <span>Attendant:</span>
-            <span>{bill.attendant?.name || 'Salon Staff'}</span>
+            <span>Stylist / Attendant:</span>
+            <span className="font-semibold">{bill.attendant?.name || 'Salon Stylist'}</span>
           </div>
           <div className="flex justify-between">
-            <span>Chair:</span>
-            <span>{bill.chair?.name || bill.chair?.chairNumber || 'Station'}</span>
+            <span>Station / Chair:</span>
+            <span>{bill.chair?.name || bill.chair?.chairNumber || 'Main Salon'}</span>
           </div>
         </div>
 
@@ -60,13 +69,13 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             <span className="col-span-2 text-right">Amt</span>
           </div>
 
-          <div className="pt-1 space-y-1 text-[10px]">
+          <div className="pt-1.5 space-y-1 text-[10px]">
             {bill.items?.map((item, idx) => (
               <div key={idx} className="grid grid-cols-12">
-                <span className="col-span-6 truncate">{item.name}</span>
+                <span className="col-span-6 truncate font-medium">{item.name}</span>
                 <span className="col-span-2 text-center">{item.quantity}</span>
-                <span className="col-span-2 text-right">{item.unitPrice}</span>
-                <span className="col-span-2 text-right font-semibold">{item.totalAmount}</span>
+                <span className="col-span-2 text-right">₹{item.unitPrice}</span>
+                <span className="col-span-2 text-right font-bold">₹{item.totalAmount}</span>
               </div>
             ))}
           </div>
@@ -80,7 +89,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
           </div>
 
           {bill.discountTotal > 0 && (
-            <div className="flex justify-between text-black">
+            <div className="flex justify-between text-black font-semibold">
               <span>Discount ({bill.discountType === 'percentage' ? `${bill.discountValue}%` : 'Flat'}):</span>
               <span>- ₹ {Number(bill.discountTotal).toFixed(2)}</span>
             </div>
@@ -100,19 +109,19 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             </div>
           )}
 
-          <div className="flex justify-between text-xs font-black pt-1 border-t border-black">
+          <div className="flex justify-between text-xs font-black pt-1.5 border-t border-black">
             <span>GRAND TOTAL:</span>
-            <span>₹ {Number(bill.grandTotal).toFixed(2)}</span>
+            <span className="text-sm">₹ {Number(bill.grandTotal).toFixed(2)}</span>
           </div>
 
           <div className="flex justify-between pt-1">
-            <span>Payment Method:</span>
-            <span className="font-bold">{bill.paymentMethod}</span>
+            <span>Payment Mode:</span>
+            <span className="font-bold uppercase">{bill.paymentMethod}</span>
           </div>
 
           <div className="flex justify-between">
             <span>Amount Received:</span>
-            <span>₹ {Number(bill.amountReceived || bill.grandTotal).toFixed(2)}</span>
+            <span className="font-semibold">₹ {Number(bill.amountReceived || bill.grandTotal).toFixed(2)}</span>
           </div>
 
           {bill.balanceAmount > 0 && (
@@ -135,16 +144,18 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
 
   // Standard A4 Format Invoice View
   return (
-    <div className="a4-invoice bg-white text-black p-8 max-w-[210mm] mx-auto border border-gray-300 shadow-sm text-sm">
-      {/* Banner */}
-      <NagulanBanner printable={true} customUrl={settings.bannerUrl} />
+    <div className="a4-invoice bg-white text-black p-6 sm:p-8 max-w-[210mm] mx-auto border border-gray-300 shadow-sm text-sm">
+      {/* Official Brand Banner at Very Top */}
+      <div className="w-full mb-6">
+        <NagulanBanner printable={true} customUrl={settings.bannerUrl} />
+      </div>
 
       {/* Invoice Details & Meta */}
-      <div className="grid grid-cols-2 gap-8 my-6 pb-6 border-b border-gray-200">
+      <div className="grid grid-cols-2 gap-8 my-4 pb-4 border-b border-gray-200">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Billed To</h3>
           <p className="font-bold text-base text-gray-900">{bill.customer?.name}</p>
-          <p className="text-gray-600">Mobile: {bill.customer?.mobile}</p>
+          <p className="text-gray-600 font-mono">Mobile: {bill.customer?.mobile}</p>
           {bill.customer?.email && <p className="text-gray-600">Email: {bill.customer.email}</p>}
         </div>
 
@@ -152,7 +163,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Invoice Information</h3>
           <p className="font-bold text-base text-gray-900">Tax Invoice: #{bill.billNumber}</p>
           <p className="text-gray-600">Date: {new Date(bill.billDate).toLocaleString('en-IN')}</p>
-          <p className="text-gray-600">Attendant: <span className="font-semibold text-gray-900">{bill.attendant?.name || 'Salon Stylist'}</span></p>
+          <p className="text-gray-600">Stylist: <span className="font-semibold text-gray-900">{bill.attendant?.name || 'Salon Stylist'}</span></p>
           <p className="text-gray-600">Station / Chair: {bill.chair?.name || bill.chair?.chairNumber || 'Main Salon'}</p>
         </div>
       </div>
@@ -176,10 +187,10 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
               <td className="py-2 px-3">{idx + 1}</td>
               <td className="py-2 px-3 font-medium text-gray-900">{item.name}</td>
               <td className="py-2 px-3 text-gray-500">{item.category || item.itemType}</td>
-              <td className="py-2 px-3 text-center">{item.quantity}</td>
+              <td className="py-2 px-3 text-center font-bold">{item.quantity}</td>
               <td className="py-2 px-3 text-right">₹ {Number(item.unitPrice).toFixed(2)}</td>
               <td className="py-2 px-3 text-right">₹ {Number(item.discountAmount || 0).toFixed(2)}</td>
-              <td className="py-2 px-3 text-right font-semibold text-gray-900">₹ {Number(item.totalAmount).toFixed(2)}</td>
+              <td className="py-2 px-3 text-right font-bold text-gray-900">₹ {Number(item.totalAmount).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
@@ -214,14 +225,14 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             </div>
           )}
 
-          <div className="flex justify-between py-2 bg-black text-white px-3 rounded font-bold text-sm">
+          <div className="flex justify-between py-2.5 bg-black text-white px-3 rounded-lg font-bold text-sm">
             <span>Grand Total:</span>
-            <span className="text-gold-400">₹ {Number(bill.grandTotal).toFixed(2)}</span>
+            <span className="text-gold-400 text-base">₹ {Number(bill.grandTotal).toFixed(2)}</span>
           </div>
 
           <div className="flex justify-between pt-2">
-            <span className="text-gray-600">Payment Method:</span>
-            <span className="font-semibold">{bill.paymentMethod}</span>
+            <span className="text-gray-600">Payment Mode:</span>
+            <span className="font-semibold uppercase">{bill.paymentMethod}</span>
           </div>
 
           <div className="flex justify-between">
