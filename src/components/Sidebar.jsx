@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NAGULAN_BANNER_BASE64 from '../assets/bannerBase64';
 
 export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const { user, logout, isSuperAdmin, isAdmin } = useAuth();
@@ -51,29 +52,28 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? 'lg:w-20' : 'lg:w-64'
       }`}
     >
-      {/* Brand Header */}
-      <div className="h-14 sm:h-16 px-2 lg:px-4 flex items-center justify-center lg:justify-between border-b border-charcoal-800 shrink-0">
-        <div className="flex items-center gap-3 overflow-hidden">
-          {/* Logo Badge (Always visible on mobile & desktop) */}
+      {/* Brand Header with Official Banner */}
+      <div className="min-h-14 sm:min-h-16 px-1.5 lg:px-2.5 py-2 flex items-center justify-between border-b border-charcoal-800 shrink-0 bg-black/70">
+        {/* Full Banner (Visible when sidebar is expanded on desktop) */}
+        <div className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:flex'} items-center flex-1 pr-1.5 overflow-hidden`}>
+          <img
+            src={NAGULAN_BANNER_BASE64}
+            alt="NAGULAN Unisex Salon"
+            className="w-full h-auto max-h-12 object-contain rounded-md shadow-xs"
+          />
+        </div>
+
+        {/* Compact Logo Emblem (Visible on mobile or when collapsed on desktop) */}
+        <div className={`flex items-center justify-center ${isCollapsed ? 'w-full' : 'lg:hidden w-full'}`}>
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black border border-gold-500 flex items-center justify-center shrink-0 shadow-sm">
             <Scissors className="w-4 h-4 sm:w-5 sm:h-5 text-gold-500 transform -rotate-45" />
-          </div>
-
-          {/* Brand Name Text (Hidden on mobile & hidden when collapsed on desktop) */}
-          <div className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:block'} truncate`}>
-            <span className="font-serif font-bold text-base text-white tracking-wider block leading-tight">
-              NAGULAN
-            </span>
-            <span className="text-[9px] tracking-widest text-gold-400 uppercase font-bold block">
-              UNISEX SALON
-            </span>
           </div>
         </div>
 
         {/* Collapse Toggle for Desktop Only */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-charcoal-800 transition-colors"
+          className="hidden lg:flex p-1 rounded-lg text-gray-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -81,7 +81,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
       </div>
 
       {/* User Role Badge (Desktop expanded only) */}
-      <div className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:block'} px-4 py-2.5 border-b border-charcoal-800/60 bg-charcoal-950/40 shrink-0`}>
+      <div className={`hidden ${isCollapsed ? 'lg:hidden' : 'lg:block'} px-4 py-2 border-b border-charcoal-800/60 bg-charcoal-950/40 shrink-0`}>
         <div className="flex items-center justify-between text-xs">
           <span className="text-gray-400 truncate max-w-[110px] text-[11px] font-medium">{user?.fullName}</span>
           <span
