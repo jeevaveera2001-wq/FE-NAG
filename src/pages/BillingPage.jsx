@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import NagulanBanner from '../components/NagulanBanner';
 import BillPreviewModal from '../components/BillPreviewModal';
 import {
   Scissors,
@@ -351,9 +350,6 @@ export const BillingPage = () => {
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Official Brand Banner Displayed Prominently at Top of Billing Screen */}
-      <NagulanBanner customUrl={settings.bannerUrl} />
-
       {/* POS Two-Column Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Services & Products Catalog (7 cols) */}
