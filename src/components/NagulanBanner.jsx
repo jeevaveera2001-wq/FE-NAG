@@ -1,5 +1,5 @@
 import React from 'react';
-import nagulanBannerImg from '../assets/nagulan-banner.jpg';
+import nagulanBannerImg from '../assets/nagulan-banner.png';
 
 export const NagulanBanner = ({
   customUrl = '',
@@ -7,7 +7,7 @@ export const NagulanBanner = ({
   printable = false,
   className = '',
 }) => {
-  const bannerSrc = customUrl || nagulanBannerImg || '/nagulan-banner.jpg';
+  const bannerSrc = customUrl || nagulanBannerImg || '/nagulan-banner.png';
 
   return (
     <div

@@ -1,6 +1,6 @@
 import React from 'react';
 import NagulanBanner from './NagulanBanner';
-import nagulanBannerImg from '../assets/nagulan-banner.jpg';
+import nagulanBannerImg from '../assets/nagulan-banner.png';
 
 export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   if (!bill) return null;
@@ -11,7 +11,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   const salonAddress = settings.address || 'Nagulan salon , Indur , Dharmapuri , PIN 636803';
   const footerMessage = settings.receiptFooterMessage || 'Thank you for visiting NAGULAN Unisex Salon';
   const subFooter = settings.receiptSubFooter || 'Visit Again';
-  const bannerSrc = settings.bannerUrl || nagulanBannerImg || '/nagulan-banner.jpg';
+  const bannerSrc = settings.bannerUrl || nagulanBannerImg || '/nagulan-banner.png';
 
   // 80mm Thermal Receipt View
   if (format === '80mm') {
