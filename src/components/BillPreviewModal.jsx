@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { X, Printer, Download, Share2, FileText } from 'lucide-react';
 import PrintableBill from './PrintableBill';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
   const [printFormat, setPrintFormat] = useState('80mm'); // '80mm' | 'a4'
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   if (!isOpen || !bill) return null;
 
@@ -12,8 +14,30 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
     window.print();
   };
 
-  const handleDownloadPDF = () => {
-    window.open(`/api/bills/${bill._id}/pdf`, '_blank');
+  const handleDownloadPDF = async () => {
+    try {
+      setIsDownloadingPDF(true);
+      toast.loading('Generating invoice PDF...', { id: 'pdf-dl' });
+      const res = await api.get(`/bills/${bill._id}/pdf`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Nagulan_Invoice_${bill.billNumber || 'Bill'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      toast.success('Invoice PDF downloaded successfully!', { id: 'pdf-dl' });
+    } catch (err) {
+      console.error('PDF download error:', err);
+      toast.error('Could not download server PDF. Opening print dialog to save as PDF...', { id: 'pdf-dl' });
+      window.print();
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
   const handleWhatsAppShare = () => {
