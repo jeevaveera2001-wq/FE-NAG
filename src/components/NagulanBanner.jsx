@@ -1,5 +1,5 @@
 import React from 'react';
-import nagulanBannerImg from '../assets/nagulan-banner.png';
+import NAGULAN_BANNER_BASE64 from '../assets/bannerBase64';
 
 export const NagulanBanner = ({
   customUrl = '',
@@ -7,7 +7,7 @@ export const NagulanBanner = ({
   printable = false,
   className = '',
 }) => {
-  const bannerSrc = customUrl || nagulanBannerImg || '/nagulan-banner.png';
+  const bannerSrc = (customUrl && customUrl.startsWith('http')) ? customUrl : NAGULAN_BANNER_BASE64;
 
   return (
     <div
@@ -17,9 +17,12 @@ export const NagulanBanner = ({
     >
       <img
         src={bannerSrc}
+        onError={(e) => {
+          e.currentTarget.src = NAGULAN_BANNER_BASE64;
+        }}
         alt="NAGULAN Unisex Salon Banner"
         className="w-full h-auto object-contain rounded-lg max-h-36 sm:max-h-44"
-        style={{ aspectRatio: '800/220', width: '100%' }}
+        style={{ width: '100%', display: 'block' }}
       />
     </div>
   );

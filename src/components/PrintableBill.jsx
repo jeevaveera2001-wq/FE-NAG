@@ -1,6 +1,6 @@
 import React from 'react';
 import NagulanBanner from './NagulanBanner';
-import nagulanBannerImg from '../assets/nagulan-banner.png';
+import NAGULAN_BANNER_BASE64 from '../assets/bannerBase64';
 
 export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   if (!bill) return null;
@@ -11,7 +11,9 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   const salonAddress = settings.address || 'Nagulan salon , Indur , Dharmapuri , PIN 636803';
   const footerMessage = settings.receiptFooterMessage || 'Thank you for visiting NAGULAN Unisex Salon';
   const subFooter = settings.receiptSubFooter || 'Visit Again';
-  const bannerSrc = settings.bannerUrl || nagulanBannerImg || '/nagulan-banner.png';
+  const bannerSrc = (settings.bannerUrl && settings.bannerUrl.startsWith('http'))
+    ? settings.bannerUrl
+    : NAGULAN_BANNER_BASE64;
 
   // 80mm Thermal Receipt View
   if (format === '80mm') {
@@ -22,8 +24,12 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
           <div className="w-full bg-black rounded p-1 mb-2 thermal-banner-box">
             <img
               src={bannerSrc}
+              onError={(e) => {
+                e.currentTarget.src = NAGULAN_BANNER_BASE64;
+              }}
               alt="NAGULAN Unisex Salon"
               className="w-full h-auto object-contain rounded"
+              style={{ width: '100%', display: 'block' }}
             />
           </div>
           <div className="font-serif font-black text-sm tracking-wider uppercase text-black">
