@@ -62,7 +62,7 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
           ${headStyles}
           <style>
             @page {
-              size: ${printFormat === '80mm' ? '80mm auto' : 'auto'};
+              size: auto;
               margin: 0mm !important;
             }
             html, body {
@@ -72,18 +72,25 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
               color: #000000 !important;
               width: ${printFormat === '80mm' ? '76mm' : '100%'} !important;
               max-width: ${printFormat === '80mm' ? '76mm' : '200mm'} !important;
-              height: auto !important;
-              overflow: visible !important;
+              height: max-content !important;
+              min-height: 0 !important;
+              overflow: hidden !important;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             }
             .thermal-receipt {
               width: 76mm !important;
               max-width: 76mm !important;
               margin: 0 !important;
-              padding: 2mm 3mm 3mm 3mm !important;
+              padding: 1.5mm 2.5mm 2mm 2.5mm !important;
               box-sizing: border-box !important;
               border: none !important;
               box-shadow: none !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              page-break-after: avoid !important;
+              break-after: avoid !important;
+              height: auto !important;
+              overflow: hidden !important;
             }
             .a4-invoice {
               width: 100% !important;
@@ -99,6 +106,20 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
               max-width: 100% !important;
               height: auto !important;
               border: none !important;
+            }
+            @media print {
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: max-content !important;
+                overflow: hidden !important;
+              }
+              .thermal-receipt {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+              }
             }
           </style>
         </head>

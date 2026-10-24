@@ -15,13 +15,13 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
     ? settings.bannerUrl
     : NAGULAN_BANNER_BASE64;
 
-  // 3-Inch (80mm) Thermal Receipt View
+  // 3-Inch (80mm) Thermal Receipt View - Ultra Compact, Single Sheet, Zero Waste
   if (format === '80mm') {
     return (
-      <div className="thermal-receipt bg-white text-black p-3.5 font-sans text-[11px] leading-relaxed w-full max-w-[80mm] mx-auto shadow-md print:shadow-none print:border-none print:p-0">
+      <div className="thermal-receipt bg-white text-black p-2 font-sans text-[10px] leading-tight w-full max-w-[76mm] mx-auto shadow-md print:shadow-none print:border-none print:p-0">
         {/* Official Brand Banner at Top (High-Contrast Black & White for Thermal Receipt Printers) */}
-        <div className="text-center pb-2 border-b-2 border-black">
-          <div className="w-full bg-black rounded p-1 mb-2 thermal-banner-box border-none">
+        <div className="text-center pb-1.5 border-b-2 border-black">
+          <div className="w-full bg-black rounded p-0.5 mb-1.5 thermal-banner-box border-none max-h-[26mm] overflow-hidden">
             <img
               src={bannerSrc}
               onError={(e) => {
@@ -32,116 +32,103 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
               style={{ width: '100%', display: 'block' }}
             />
           </div>
-          <div className="font-bold text-sm tracking-wider uppercase text-black">
+          <div className="font-bold text-xs tracking-wider uppercase text-black">
             {salonName}
           </div>
-          <p className="text-[10px] font-semibold text-black mt-0.5 uppercase tracking-tight">{salonAddress}</p>
-          <p className="text-[10px] text-black mt-0.5 font-bold">
+          <p className="text-[9px] font-semibold text-black mt-0.5 uppercase tracking-tight leading-tight">{salonAddress}</p>
+          <p className="text-[9px] text-black mt-0.5 font-bold">
             Franchise Enquiry: <span>{franchisePhone}</span>
           </p>
         </div>
 
-        {/* Bill & Customer Meta */}
-        <div className="py-2 text-[10.5px] border-b border-dashed border-black space-y-1">
-          <div className="flex justify-between">
-            <span className="font-medium text-gray-800">Bill No:</span>
-            <span className="font-bold">{bill.billNumber}</span>
+        {/* Bill & Customer Meta - Compact 2-Line Layout */}
+        <div className="py-1.5 text-[9.5px] border-b border-dashed border-black space-y-0.5">
+          <div className="flex justify-between items-center">
+            <span>Bill: <strong className="font-bold">{bill.billNumber}</strong></span>
+            <span className="font-medium">{new Date(bill.billDate).toLocaleDateString('en-IN')} {new Date(bill.billDate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-800">Date & Time:</span>
-            <span className="font-semibold">{new Date(bill.billDate).toLocaleString('en-IN')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium text-gray-800">Customer:</span>
-            <span className="font-bold">{bill.customer?.name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-800">Mobile:</span>
+          <div className="flex justify-between items-center">
+            <span>Cust: <strong className="font-bold">{bill.customer?.name}</strong></span>
             <span className="font-semibold">{bill.customer?.mobile}</span>
           </div>
         </div>
 
-        {/* Items Table - Clean, Clear, Professional */}
-        <div className="py-2 border-b border-black">
-          <div className="flex justify-between font-bold text-[10.5px] pb-1 border-b border-black uppercase tracking-tight">
+        {/* Items Table - Clean, Compact, Professional */}
+        <div className="py-1 border-b border-black">
+          <div className="flex justify-between font-bold text-[9.5px] pb-0.5 border-b border-black uppercase tracking-tight">
             <span className="flex-1 text-left">Item / Service</span>
-            <span className="w-8 text-center">Qty</span>
-            <span className="w-14 text-right">Rate</span>
-            <span className="w-16 text-right">Amt</span>
+            <span className="w-7 text-center">Qty</span>
+            <span className="w-12 text-right">Rate</span>
+            <span className="w-14 text-right">Amt</span>
           </div>
 
-          <div className="pt-1.5 space-y-1.5 text-[10.5px]">
+          <div className="pt-1 space-y-1 text-[9.5px]">
             {bill.items?.map((item, idx) => (
               <div key={idx} className="flex justify-between items-start leading-tight">
                 <div className="flex-1 pr-1 text-left font-semibold text-black">
                   <span>{item.name}</span>
                   {item.discountAmount > 0 && (
-                    <span className="block text-[9px] text-gray-700 font-normal">
-                      Disc: -₹{Number(item.discountAmount).toFixed(2)}
+                    <span className="block text-[8.5px] text-gray-700 font-normal">
+                      Disc: -₹{Number(item.discountAmount).toFixed(0)}
                     </span>
                   )}
                 </div>
-                <span className="w-8 text-center font-medium">{item.quantity}</span>
-                <span className="w-14 text-right font-medium">₹{Number(item.unitPrice).toFixed(0)}</span>
-                <span className="w-16 text-right font-bold">₹{Number(item.totalAmount).toFixed(0)}</span>
+                <span className="w-7 text-center font-medium">{item.quantity}</span>
+                <span className="w-12 text-right font-medium">₹{Number(item.unitPrice).toFixed(0)}</span>
+                <span className="w-14 text-right font-bold">₹{Number(item.totalAmount).toFixed(0)}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Financial Summary */}
-        <div className="py-2 text-[10.5px] space-y-1 border-b border-black font-medium">
+        {/* Financial Summary - Compact */}
+        <div className="py-1 text-[9.5px] space-y-0.5 border-b border-black font-medium">
           <div className="flex justify-between">
             <span>Subtotal:</span>
-            <span className="font-semibold">₹ {Number(bill.subtotal).toFixed(2)}</span>
+            <span className="font-semibold">₹{Number(bill.subtotal).toFixed(2)}</span>
           </div>
 
           {bill.discountTotal > 0 && (
             <div className="flex justify-between text-black font-semibold">
               <span>Discount ({bill.discountType === 'percentage' ? `${bill.discountValue}%` : 'Flat'}):</span>
-              <span>- ₹ {Number(bill.discountTotal).toFixed(2)}</span>
+              <span>-₹{Number(bill.discountTotal).toFixed(2)}</span>
             </div>
           )}
 
           {bill.cgst > 0 && (
             <div className="flex justify-between">
               <span>CGST (9%):</span>
-              <span>₹ {Number(bill.cgst).toFixed(2)}</span>
+              <span>₹{Number(bill.cgst).toFixed(2)}</span>
             </div>
           )}
 
           {bill.sgst > 0 && (
             <div className="flex justify-between">
               <span>SGST (9%):</span>
-              <span>₹ {Number(bill.sgst).toFixed(2)}</span>
+              <span>₹{Number(bill.sgst).toFixed(2)}</span>
             </div>
           )}
 
-          <div className="flex justify-between items-center text-sm font-black pt-1.5 pb-1 border-t-2 border-b-2 border-black my-1">
+          <div className="flex justify-between items-center text-xs font-black py-0.5 border-t-2 border-b-2 border-black my-0.5">
             <span className="tracking-wide">GRAND TOTAL:</span>
-            <span className="text-base tracking-tight">₹ {Number(bill.grandTotal).toFixed(2)}</span>
+            <span className="text-sm tracking-tight">₹{Number(bill.grandTotal).toFixed(2)}</span>
           </div>
 
           <div className="flex justify-between pt-0.5">
-            <span>Payment Mode:</span>
-            <span className="font-bold uppercase">{bill.paymentMethod}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span>Amount Received:</span>
-            <span className="font-semibold">₹ {Number(bill.amountReceived || bill.grandTotal).toFixed(2)}</span>
+            <span>Payment: <b className="uppercase">{bill.paymentMethod}</b></span>
+            <span>Paid: <b className="font-semibold">₹{Number(bill.amountReceived || bill.grandTotal).toFixed(2)}</b></span>
           </div>
 
           {bill.balanceAmount > 0 && (
-            <div className="flex justify-between font-bold">
+            <div className="flex justify-between font-bold text-black">
               <span>Balance Due:</span>
-              <span>₹ {Number(bill.balanceAmount).toFixed(2)}</span>
+              <span>₹{Number(bill.balanceAmount).toFixed(2)}</span>
             </div>
           )}
         </div>
 
-        {/* Footer Notes */}
-        <div className="pt-2 text-center text-[10px] space-y-0.5">
+        {/* Footer Notes - Zero Bottom Extra Space */}
+        <div className="pt-1.5 pb-0 text-center text-[9px] leading-tight space-y-0.5">
           <p className="font-bold text-black">{footerMessage}</p>
           <p className="italic font-medium text-black">{subFooter}</p>
         </div>
