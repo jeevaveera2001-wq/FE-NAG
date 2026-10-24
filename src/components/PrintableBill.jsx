@@ -59,10 +59,6 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             <span className="text-gray-800">Mobile:</span>
             <span className="font-semibold">{bill.customer?.mobile}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-800">Stylist / Attendant:</span>
-            <span className="font-bold">{bill.attendant?.name || 'Salon Stylist'}</span>
-          </div>
         </div>
 
         {/* Items Table - Clean, Clear, Professional */}
@@ -174,7 +170,6 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Invoice Information</h3>
           <p className="font-bold text-base text-gray-900">Tax Invoice: #{bill.billNumber}</p>
           <p className="text-gray-600">Date: {new Date(bill.billDate).toLocaleString('en-IN')}</p>
-          <p className="text-gray-600">Stylist: <span className="font-semibold text-gray-900">{bill.attendant?.name || 'Salon Stylist'}</span></p>
         </div>
       </div>
 
