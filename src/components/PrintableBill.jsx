@@ -63,10 +63,6 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             <span className="text-gray-800">Stylist / Attendant:</span>
             <span className="font-bold">{bill.attendant?.name || 'Salon Stylist'}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-800">Station / Chair:</span>
-            <span className="font-medium">{bill.chair?.name || bill.chair?.chairNumber || 'Main Salon'}</span>
-          </div>
         </div>
 
         {/* Items Table - Clean, Clear, Professional */}
@@ -149,10 +145,9 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
         </div>
 
         {/* Footer Notes */}
-        <div className="pt-3 text-center text-[10px] space-y-0.5">
+        <div className="pt-2 text-center text-[10px] space-y-0.5">
           <p className="font-bold text-black">{footerMessage}</p>
           <p className="italic font-medium text-black">{subFooter}</p>
-          <p className="text-[9px] text-gray-700 mt-2 font-medium">Billed By: {bill.createdByName || 'System'}</p>
         </div>
       </div>
     );
@@ -180,7 +175,6 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
           <p className="font-bold text-base text-gray-900">Tax Invoice: #{bill.billNumber}</p>
           <p className="text-gray-600">Date: {new Date(bill.billDate).toLocaleString('en-IN')}</p>
           <p className="text-gray-600">Stylist: <span className="font-semibold text-gray-900">{bill.attendant?.name || 'Salon Stylist'}</span></p>
-          <p className="text-gray-600">Station / Chair: {bill.chair?.name || bill.chair?.chairNumber || 'Main Salon'}</p>
         </div>
       </div>
 

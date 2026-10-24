@@ -23,7 +23,102 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
   if (!isOpen || !bill) return null;
 
   const handlePrint = () => {
-    window.print();
+    const printableElement = document.getElementById('printable-bill-content');
+    if (!printableElement) {
+      window.print();
+      return;
+    }
+
+    // Clean up any existing print frame
+    const existingFrame = document.getElementById('thermal-print-iframe');
+    if (existingFrame) {
+      existingFrame.remove();
+    }
+
+    // Create an isolated iframe so TVSE RP3200 Lite prints on EXACTLY 1 single sheet
+    const iframe = document.createElement('iframe');
+    iframe.id = 'thermal-print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-9999px';
+    iframe.style.left = '-9999px';
+    iframe.style.width = printFormat === '80mm' ? '76mm' : '200mm';
+    iframe.style.height = '100px';
+    iframe.style.border = 'none';
+    iframe.style.opacity = '0';
+    document.body.appendChild(iframe);
+
+    // Collect all stylesheets from main document
+    const headStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((el) => el.outerHTML)
+      .join('\n');
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title></title>
+          ${headStyles}
+          <style>
+            @page {
+              size: ${printFormat === '80mm' ? '80mm auto' : 'auto'};
+              margin: 0mm !important;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #000000 !important;
+              width: ${printFormat === '80mm' ? '76mm' : '100%'} !important;
+              max-width: ${printFormat === '80mm' ? '76mm' : '200mm'} !important;
+              height: auto !important;
+              overflow: visible !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            }
+            .thermal-receipt {
+              width: 76mm !important;
+              max-width: 76mm !important;
+              margin: 0 !important;
+              padding: 2mm 3mm 3mm 3mm !important;
+              box-sizing: border-box !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+            .a4-invoice {
+              width: 100% !important;
+              max-width: 200mm !important;
+              margin: 0 auto !important;
+              padding: 6mm 8mm !important;
+              box-sizing: border-box !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+            img {
+              display: block !important;
+              max-width: 100% !important;
+              height: auto !important;
+              border: none !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${printableElement.innerHTML}
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    // Give iframe short tick to apply styles then print cleanly
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Iframe print error, falling back to window.print', err);
+        window.print();
+      }
+    }, 200);
   };
 
   const handleDownloadPDF = async () => {
