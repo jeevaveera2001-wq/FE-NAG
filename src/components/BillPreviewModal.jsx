@@ -5,8 +5,20 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
-  const [printFormat, setPrintFormat] = useState('80mm'); // '80mm' | 'a4'
+  const [printFormat, setPrintFormat] = useState('80mm'); // '80mm' (3 inch) | 'a4' (200mm)
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+
+  // Manage print class on body for clean borderless isolation
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('bill-print-active');
+    } else {
+      document.body.classList.remove('bill-print-active');
+    }
+    return () => {
+      document.body.classList.remove('bill-print-active');
+    };
+  }, [isOpen]);
 
   if (!isOpen || !bill) return null;
 
@@ -86,7 +98,7 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
                     : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
                 }`}
               >
-                80mm Thermal
+                3" (80mm) Thermal
               </button>
               <button
                 onClick={() => setPrintFormat('a4')}
@@ -96,7 +108,7 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
                     : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
                 }`}
               >
-                A4 Invoice
+                A4 (200mm) Invoice
               </button>
             </div>
 
@@ -111,8 +123,10 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
 
         {/* Scrollable Printable Bill Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-100 dark:bg-charcoal-950/40">
-          <div className="flex justify-center">
-            <PrintableBill bill={bill} settings={settings} format={printFormat} />
+          <div className="flex justify-center w-full">
+            <div id="printable-bill-content" className="w-full flex justify-center">
+              <PrintableBill bill={bill} settings={settings} format={printFormat} />
+            </div>
           </div>
         </div>
 
@@ -140,7 +154,7 @@ export const BillPreviewModal = ({ isOpen, onClose, bill, settings }) => {
               className="flex items-center gap-2 px-5 py-2 rounded-lg bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold text-xs sm:text-sm shadow-md transition-all"
             >
               <Printer className="w-4 h-4" />
-              <span>Print {printFormat === '80mm' ? 'Thermal Receipt' : 'A4 Bill'}</span>
+              <span>Print {printFormat === '80mm' ? '3" (80mm) Receipt' : 'A4 (200mm) Bill'}</span>
             </button>
           </div>
         </div>
