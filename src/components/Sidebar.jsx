@@ -43,7 +43,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     { label: 'Reports & Analytics', path: '/reports', icon: BarChart3, visible: isAdmin },
     { label: 'Admin Management', path: '/admin-management', icon: ShieldCheck, visible: isSuperAdmin },
     { label: 'Activity Logs', path: '/activity-logs', icon: FileSpreadsheet, visible: isSuperAdmin },
-    { label: 'Salon Settings', path: '/settings', icon: Settings, visible: true },
+    { label: 'Salon Settings', path: '/settings', icon: Settings, visible: isSuperAdmin },
   ];
 
   const filteredItems = navItems.filter((item) => item.visible);

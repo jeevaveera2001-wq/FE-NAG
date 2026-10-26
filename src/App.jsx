@@ -87,7 +87,16 @@ export const App = () => {
         <Route path="/chairs" element={<ChairsPage />} />
         <Route path="/attendants" element={<AttendantsPage />} />
         <Route path="/customers" element={<CustomersPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+
+        {/* Super Admin Only */}
+        <Route
+          path="/settings"
+          element={
+            <RoleGuard allowedRoles={['superadmin']}>
+              <SettingsPage />
+            </RoleGuard>
+          }
+        />
 
         {/* Admin & Super Admin Only */}
         <Route
