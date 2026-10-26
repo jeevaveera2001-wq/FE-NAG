@@ -22,7 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import NAGULAN_BANNER_BASE64 from '../assets/bannerBase64';
 
 export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
-  const { user, logout, isSuperAdmin, isAdmin } = useAuth();
+  const { user, logout, isSuperAdmin, isAdmin, isReception } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -31,17 +31,17 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   const navItems = [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard, visible: true },
+    { label: 'Dashboard', path: '/', icon: LayoutDashboard, visible: !isReception },
     { label: 'Billing / POS', path: '/billing', icon: Receipt, visible: true },
     { label: 'Sales History', path: '/sales', icon: History, visible: true },
-    { label: 'Payments', path: '/payments', icon: CreditCard, visible: true },
+    { label: 'Payments', path: '/payments', icon: CreditCard, visible: !isReception },
     { label: 'Services & Menu', path: '/services', icon: Scissors, visible: true },
     { label: 'Products & Stock', path: '/products', icon: Package, visible: true },
-    { label: 'Chairs & Stations', path: '/chairs', icon: Armchair, visible: true },
-    { label: 'Attendants', path: '/attendants', icon: Users, visible: true },
+    { label: 'Chairs & Stations', path: '/chairs', icon: Armchair, visible: !isReception },
+    { label: 'Attendants', path: '/attendants', icon: Users, visible: !isReception },
     { label: 'Customers', path: '/customers', icon: UserSquare2, visible: true },
     { label: 'Reports & Analytics', path: '/reports', icon: BarChart3, visible: isAdmin },
-    { label: 'Admin Management', path: '/admin-management', icon: ShieldCheck, visible: isSuperAdmin },
+    { label: 'Admin & Reception', path: '/admin-management', icon: ShieldCheck, visible: isSuperAdmin },
     { label: 'Activity Logs', path: '/activity-logs', icon: FileSpreadsheet, visible: isSuperAdmin },
     { label: 'Salon Settings', path: '/settings', icon: Settings, visible: isSuperAdmin },
   ];

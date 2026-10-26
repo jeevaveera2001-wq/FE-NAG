@@ -24,6 +24,7 @@ export const AdminManagementPage = () => {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 15 });
 
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
 
   // Add/Edit Modal
@@ -54,21 +55,23 @@ export const AdminManagementPage = () => {
     try {
       setLoading(true);
       const params = {
-        role: 'admin',
         page,
         limit: 15,
         search,
+        role: roleFilter !== 'All' ? roleFilter : undefined,
         status: statusFilter !== 'All' ? statusFilter : undefined,
       };
 
       const res = await api.get('/users', { params });
       if (res.data.success) {
-        setAdmins(res.data.users);
+        // Exclude the logged-in superadmin from the list of managed users
+        const managedUsers = res.data.users.filter((u) => u.role !== 'superadmin');
+        setAdmins(managedUsers);
         setPagination(res.data.pagination);
       }
     } catch (err) {
-      console.error('Failed to load admin accounts:', err);
-      toast.error('Failed to load admin accounts');
+      console.error('Failed to load user accounts:', err);
+      toast.error('Failed to load accounts');
     } finally {
       setLoading(false);
     }
@@ -76,7 +79,7 @@ export const AdminManagementPage = () => {
 
   useEffect(() => {
     fetchAdmins(1);
-  }, [search, statusFilter]);
+  }, [search, roleFilter, statusFilter]);
 
   const openCreateModal = () => {
     setEditingAdmin(null);
@@ -103,7 +106,7 @@ export const AdminManagementPage = () => {
       email: admin.email,
       mobile: admin.mobile,
       password: '',
-      role: 'admin',
+      role: admin.role || 'admin',
       shift: admin.shift || 'Full Day',
       status: admin.status,
     });
@@ -116,15 +119,15 @@ export const AdminManagementPage = () => {
       setIsProcessing(true);
       if (editingAdmin) {
         await api.put(`/users/${editingAdmin._id}`, formData);
-        toast.success('Admin account updated');
+        toast.success('User account updated');
       } else {
         await api.post('/users', formData);
-        toast.success('Admin account created');
+        toast.success(`${formData.role === 'reception' ? 'Reception' : 'Admin'} account created successfully`);
       }
       setModalOpen(false);
       fetchAdmins(pagination.page);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save admin user');
+      toast.error(err.response?.data?.message || 'Failed to save user account');
     } finally {
       setIsProcessing(false);
     }
@@ -173,10 +176,10 @@ export const AdminManagementPage = () => {
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-serif">
             <ShieldAlert className="w-6 h-6 text-gold-500" />
-            Admin Account Management (Super Admin Exclusive)
+            Admin & Reception Management
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Configure administrative credentials, access permissions and manager accounts
+            Manage Admin and Front-Desk Reception credentials, permissions, and roles
           </p>
         </div>
 
@@ -185,7 +188,7 @@ export const AdminManagementPage = () => {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold text-xs shadow-md transition-all"
         >
           <Plus className="w-4 h-4" />
-          <span>Add Admin User</span>
+          <span>Add User Account</span>
         </button>
       </div>
 
@@ -193,9 +196,47 @@ export const AdminManagementPage = () => {
         <SearchBar
           value={search}
           onChange={setSearch}
-          placeholder="Search admin by name, username, mobile, employee ID..."
+          placeholder="Search user by name, username, mobile, employee ID..."
           onClear={() => setSearch('')}
         />
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-gray-100 dark:border-charcoal-800">
+          {/* Role Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-gray-500">Role:</span>
+            {['All', 'admin', 'reception'].map((r) => (
+              <button
+                key={r}
+                onClick={() => setRoleFilter(r)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  roleFilter === r
+                    ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow-xs'
+                    : 'bg-gray-100 dark:bg-charcoal-800 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                {r === 'All' ? 'All Roles' : r}
+              </button>
+            ))}
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-gray-500">Status:</span>
+            {['All', 'active', 'inactive'].map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  statusFilter === st
+                    ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow-xs'
+                    : 'bg-gray-100 dark:bg-charcoal-800 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                {st === 'All' ? 'All Status' : st}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 shadow-sm overflow-hidden">
@@ -206,6 +247,7 @@ export const AdminManagementPage = () => {
                 <th className="py-3.5 px-4">Emp ID</th>
                 <th className="py-3.5 px-4">Full Name</th>
                 <th className="py-3.5 px-4">Username</th>
+                <th className="py-3.5 px-4">Role</th>
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Mobile</th>
                 <th className="py-3.5 px-4">Last Login</th>
@@ -217,11 +259,11 @@ export const AdminManagementPage = () => {
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">Loading admin accounts...</td>
+                  <td colSpan={9} className="py-12 text-center text-gray-400">Loading accounts...</td>
                 </tr>
               ) : admins.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">No admin accounts found.</td>
+                  <td colSpan={9} className="py-12 text-center text-gray-400">No user accounts found.</td>
                 </tr>
               ) : (
                 admins.map((ad) => (
@@ -231,6 +273,19 @@ export const AdminManagementPage = () => {
                     </td>
                     <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">{ad.fullName}</td>
                     <td className="py-3.5 px-4 font-mono text-gray-900 dark:text-white">@{ad.username}</td>
+                    <td className="py-3.5 px-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          ad.role === 'admin'
+                            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                            : ad.role === 'reception'
+                            ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20'
+                            : 'bg-gold-500/10 text-gold-600 border border-gold-500/20'
+                        }`}
+                      >
+                        {ad.role}
+                      </span>
+                    </td>
                     <td className="py-3.5 px-4 text-gray-500">{ad.email}</td>
                     <td className="py-3.5 px-4 font-mono">{ad.mobile}</td>
                     <td className="py-3.5 px-4 text-gray-500">
@@ -264,7 +319,7 @@ export const AdminManagementPage = () => {
                         <button
                           onClick={() => openEditModal(ad)}
                           className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-charcoal-800 rounded-lg"
-                          title="Edit Admin Account"
+                          title="Edit User Account"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -275,7 +330,7 @@ export const AdminManagementPage = () => {
                             setDeleteModalOpen(true);
                           }}
                           className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
-                          title="Remove Admin Account"
+                          title="Remove User Account"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -297,7 +352,7 @@ export const AdminManagementPage = () => {
           <div className="bg-white dark:bg-charcoal-900 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 dark:border-charcoal-800 p-6">
             <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-charcoal-800">
               <h3 className="font-bold text-base text-gray-900 dark:text-white">
-                {editingAdmin ? 'Edit Admin Account' : 'Create New Admin User'}
+                {editingAdmin ? 'Edit User Account' : 'Create New User Account'}
               </h3>
               <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
                 <X className="w-5 h-5" />
@@ -305,6 +360,18 @@ export const AdminManagementPage = () => {
             </div>
 
             <form onSubmit={handleSaveAdmin} className="mt-4 space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Assigned Role *</label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-bold"
+                  required
+                >
+                  <option value="admin">Admin (Live Dashboard, Add Products, Services, Chairs, Bills - No Deletion)</option>
+                  <option value="reception">Reception (POS Billing, Sales History, View-Only Services, Products, Customers)</option>
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Employee ID</label>

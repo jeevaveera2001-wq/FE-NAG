@@ -61,11 +61,12 @@ const ProtectedLayout = () => {
 };
 
 // Role Guard Component
-const RoleGuard = ({ allowedRoles, children }) => {
-  const { user, hasRole } = useAuth();
+const RoleGuard = ({ allowedRoles, children, fallbackPath }) => {
+  const { user, hasRole, isReception } = useAuth();
 
   if (!user || !hasRole(allowedRoles)) {
-    return <Navigate to="/" replace />;
+    const target = fallbackPath || (isReception ? '/billing' : '/');
+    return <Navigate to={target} replace />;
   }
 
   return children;
@@ -78,14 +79,43 @@ export const App = () => {
 
       {/* Authenticated Dashboard Routes */}
       <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<DashboardPage />} />
+        {/* Admin & Super Admin Only for Dashboard, Chairs, Attendants, Payments */}
+        <Route
+          path="/"
+          element={
+            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+              <DashboardPage />
+            </RoleGuard>
+          }
+        />
         <Route path="/billing" element={<BillingPage />} />
         <Route path="/sales" element={<SalesHistoryPage />} />
-        <Route path="/payments" element={<PaymentsPage />} />
+        <Route
+          path="/payments"
+          element={
+            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+              <PaymentsPage />
+            </RoleGuard>
+          }
+        />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/products" element={<ProductsPage />} />
-        <Route path="/chairs" element={<ChairsPage />} />
-        <Route path="/attendants" element={<AttendantsPage />} />
+        <Route
+          path="/chairs"
+          element={
+            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+              <ChairsPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/attendants"
+          element={
+            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+              <AttendantsPage />
+            </RoleGuard>
+          }
+        />
         <Route path="/customers" element={<CustomersPage />} />
 
         {/* Super Admin Only */}

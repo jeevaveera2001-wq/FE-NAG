@@ -56,7 +56,8 @@ export const AuthProvider = ({ children }) => {
 
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin' || isSuperAdmin;
-  const isStaff = user?.role === 'staff' || isAdmin;
+  const isReception = user?.role === 'reception';
+  const isStaff = user?.role === 'staff' || isReception || isAdmin;
 
   const hasRole = (roles) => {
     if (!user) return false;
@@ -74,6 +75,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         isSuperAdmin,
         isAdmin,
+        isReception,
         isStaff,
         hasRole,
       }}
