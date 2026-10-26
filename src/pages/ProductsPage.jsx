@@ -236,22 +236,16 @@ export const ProductsPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {isReception && (
-            <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
-              View Only Access
-            </span>
-          )}
+        {!isReception && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-green-600" />
+              <span>Export Stock</span>
+            </button>
 
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-green-600" />
-            <span>Export Stock</span>
-          </button>
-
-          {!isReception && (
             <button
               onClick={openCreateModal}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold text-xs shadow-md transition-all"
@@ -259,8 +253,8 @@ export const ProductsPage = () => {
               <Plus className="w-4 h-4" />
               <span>Add Product</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Filter Bar */}

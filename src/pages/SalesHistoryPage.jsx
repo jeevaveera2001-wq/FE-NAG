@@ -22,7 +22,7 @@ import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 
 export const SalesHistoryPage = () => {
-  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const { user, isSuperAdmin, isAdmin, isReception } = useAuth();
 
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,31 +175,33 @@ export const SalesHistoryPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-green-600" />
-            <span>Excel</span>
-          </button>
+        {!isReception && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-green-600" />
+              <span>Excel</span>
+            </button>
 
-          <button
-            onClick={exportToCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
-          >
-            <Download className="w-4 h-4 text-blue-600" />
-            <span>CSV</span>
-          </button>
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
+            >
+              <Download className="w-4 h-4 text-blue-600" />
+              <span>CSV</span>
+            </button>
 
-          <button
-            onClick={() => fetchBills(pagination.page)}
-            className="p-2 rounded-lg border border-gray-300 dark:border-charcoal-700 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-gray-700 dark:text-gray-300"
-            title="Refresh List"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
+            <button
+              onClick={() => fetchBills(pagination.page)}
+              className="p-2 rounded-lg border border-gray-300 dark:border-charcoal-700 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-gray-700 dark:text-gray-300"
+              title="Refresh List"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Advanced Search & Multi-Filter Bar */}
