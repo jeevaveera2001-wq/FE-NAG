@@ -18,31 +18,38 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
   // 3-Inch (80mm) Thermal Receipt View - Ultra Compact, Single Sheet, Zero Waste
   if (format === '80mm') {
     return (
-      <div className="thermal-receipt bg-white text-black p-2 font-sans text-[10px] leading-tight w-full max-w-[76mm] mx-auto shadow-md print:shadow-none print:border-none print:p-0">
-        {/* Official Brand Banner at Top (High-Contrast Black & White for Thermal Receipt Printers) */}
-        <div className="text-center pb-1.5 border-b-2 border-black">
-          <div className="w-full bg-black rounded p-0.5 mb-1.5 thermal-banner-box border-none max-h-[26mm] overflow-hidden">
-            <img
-              src={bannerSrc}
-              onError={(e) => {
-                e.currentTarget.src = NAGULAN_BANNER_BASE64;
-              }}
-              alt="NAGULAN Unisex Salon"
-              className="w-full h-auto object-contain rounded"
-              style={{ width: '100%', display: 'block' }}
-            />
-          </div>
-          <div className="font-bold text-xs tracking-wider uppercase text-black">
+      <div className="thermal-receipt bg-white text-black font-sans text-[10px] leading-tight w-full max-w-[76mm] mx-auto shadow-md print:shadow-none print:border-none print:p-0 overflow-hidden">
+        {/* Official Brand Banner at Top - End-to-End, Borderless, Zero Extra Margins */}
+        <div className="w-full bg-black thermal-banner-box border-none m-0 p-0 overflow-hidden">
+          <img
+            src={bannerSrc}
+            onError={(e) => {
+              e.currentTarget.src = NAGULAN_BANNER_BASE64;
+            }}
+            alt="NAGULAN Unisex Salon"
+            className="w-full h-auto object-cover block border-none m-0 p-0"
+            style={{ width: '100%', display: 'block' }}
+          />
+        </div>
+
+        {/* Salon Branch & Contact Information - Neat, Proper Alignment, Professional Font & Styling */}
+        <div className="px-2 pt-1.5 pb-1.5 text-center border-b-2 border-black">
+          <div className="font-serif font-black text-xs sm:text-[13px] tracking-[0.14em] uppercase text-black">
             {salonName}
           </div>
-          <p className="text-[9px] font-semibold text-black mt-0.5 uppercase tracking-tight leading-tight">{salonAddress}</p>
-          <p className="text-[9px] text-black mt-0.5 font-bold">
-            Franchise Enquiry: <span>{franchisePhone}</span>
+          <div className="text-[8.5px] font-bold tracking-widest text-gray-700 uppercase mt-0.5">
+            {tagline}
+          </div>
+          <p className="text-[9px] font-medium text-gray-800 mt-0.5 uppercase tracking-tight leading-tight">
+            {salonAddress}
           </p>
+          <div className="mt-0.5 text-[9px] font-bold text-black tracking-tight">
+            Franchise Hotline: <span className="font-black">{franchisePhone}</span>
+          </div>
         </div>
 
         {/* Bill & Customer Meta - Compact 2-Line Layout */}
-        <div className="py-1.5 text-[9.5px] border-b border-dashed border-black space-y-0.5">
+        <div className="px-2 py-1.5 text-[9.5px] border-b border-dashed border-black space-y-0.5">
           <div className="flex justify-between items-center">
             <span>Bill: <strong className="font-bold">{bill.billNumber}</strong></span>
             <span className="font-medium">{new Date(bill.billDate).toLocaleDateString('en-IN')} {new Date(bill.billDate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -54,7 +61,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
         </div>
 
         {/* Items Table - Clean, Compact, Professional */}
-        <div className="py-1 border-b border-black">
+        <div className="px-2 py-1 border-b border-black">
           <div className="flex justify-between font-bold text-[9.5px] pb-0.5 border-b border-black uppercase tracking-tight">
             <span className="flex-1 text-left">Item / Service</span>
             <span className="w-7 text-center">Qty</span>
@@ -82,7 +89,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
         </div>
 
         {/* Financial Summary - Compact */}
-        <div className="py-1 text-[9.5px] space-y-0.5 border-b border-black font-medium">
+        <div className="px-2 py-1 text-[9.5px] space-y-0.5 border-b border-black font-medium">
           <div className="flex justify-between">
             <span>Subtotal:</span>
             <span className="font-semibold">₹{Number(bill.subtotal).toFixed(2)}</span>
@@ -128,7 +135,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
         </div>
 
         {/* Footer Notes - Zero Bottom Extra Space */}
-        <div className="pt-1.5 pb-0 text-center text-[9px] leading-tight space-y-0.5">
+        <div className="px-2 pt-1.5 pb-2 text-center text-[9px] leading-tight space-y-0.5">
           <p className="font-bold text-black">{footerMessage}</p>
           <p className="italic font-medium text-black">{subFooter}</p>
         </div>
