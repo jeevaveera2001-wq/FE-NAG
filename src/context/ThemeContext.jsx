@@ -3,24 +3,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('nagulan_theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const isDarkMode = false;
 
   useEffect(() => {
     const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('nagulan_theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('nagulan_theme', 'light');
-    }
-  }, [isDarkMode]);
+    root.classList.remove('dark');
+    localStorage.setItem('nagulan_theme', 'light');
+  }, []);
 
-  const toggleTheme = () => setIsDarkMode((prev) => !prev);
+  const toggleTheme = () => {};
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
