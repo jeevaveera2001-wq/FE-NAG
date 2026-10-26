@@ -366,14 +366,14 @@ export const ProductsPage = () => {
                             <Edit2 className="w-4 h-4" />
                           </button>
 
-                          {isAdmin && (
+                          {isSuperAdmin && (
                             <button
                               onClick={() => {
                                 setProductToDelete(p);
                                 setDeleteModalOpen(true);
                               }}
                               className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
-                              title="Delete Product"
+                              title="Delete Product (Super Admin Only)"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

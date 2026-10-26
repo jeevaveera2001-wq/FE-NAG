@@ -338,14 +338,14 @@ export const ServicesPage = () => {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        {isAdmin && (
+                        {isSuperAdmin && (
                           <button
                             onClick={() => {
                               setServiceToDelete(srv);
                               setDeleteModalOpen(true);
                             }}
                             className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
-                            title="Remove Service"
+                            title="Remove Service (Super Admin Only)"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

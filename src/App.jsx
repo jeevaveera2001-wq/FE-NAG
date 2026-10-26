@@ -20,6 +20,7 @@ import CustomersPage from './pages/CustomersPage';
 import ReportsPage from './pages/ReportsPage';
 import ActivityLogsPage from './pages/ActivityLogsPage';
 import SettingsPage from './pages/SettingsPage';
+import AdminManagementPage from './pages/AdminManagementPage';
 
 // Protected Route Guard
 const ProtectedLayout = () => {
@@ -99,6 +100,14 @@ export const App = () => {
         />
 
         {/* Super Admin Only */}
+        <Route
+          path="/admin-management"
+          element={
+            <RoleGuard allowedRoles={['superadmin']}>
+              <AdminManagementPage />
+            </RoleGuard>
+          }
+        />
         <Route
           path="/activity-logs"
           element={

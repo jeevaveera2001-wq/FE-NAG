@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import NAGULAN_BANNER_BASE64 from '../assets/bannerBase64';
@@ -40,6 +41,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     { label: 'Attendants', path: '/attendants', icon: Users, visible: true },
     { label: 'Customers', path: '/customers', icon: UserSquare2, visible: true },
     { label: 'Reports & Analytics', path: '/reports', icon: BarChart3, visible: isAdmin },
+    { label: 'Admin Management', path: '/admin-management', icon: ShieldCheck, visible: isSuperAdmin },
     { label: 'Activity Logs', path: '/activity-logs', icon: FileSpreadsheet, visible: isSuperAdmin },
     { label: 'Salon Settings', path: '/settings', icon: Settings, visible: true },
   ];

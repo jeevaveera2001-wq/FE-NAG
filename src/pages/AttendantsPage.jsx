@@ -506,14 +506,14 @@ export const AttendantsPage = () => {
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
 
-                            {isAdmin && (
+                            {isSuperAdmin && (
                               <button
                                 onClick={() => {
                                   setAttendantToDelete(att);
                                   setDeleteModalOpen(true);
                                 }}
                                 className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
-                                title="Remove Attendant"
+                                title="Remove Attendant (Super Admin Only)"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>

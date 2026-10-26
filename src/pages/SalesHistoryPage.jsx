@@ -399,15 +399,15 @@ export const SalesHistoryPage = () => {
                           <FileText className="w-4 h-4" />
                         </button>
 
-                        {/* Cancel bill (Admin or Super Admin) */}
-                        {isAdmin && bill.status !== 'Cancelled' && (
+                        {/* Cancel bill (Super Admin Only - Admins strictly prohibited from deleting/cancelling sales) */}
+                        {isSuperAdmin && bill.status !== 'Cancelled' && (
                           <button
                             onClick={() => {
                               setCancellingBill(bill);
                               setCancelModalOpen(true);
                             }}
                             className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-500/10"
-                            title="Cancel Bill"
+                            title="Cancel Bill (Super Admin Only)"
                           >
                             <Ban className="w-4 h-4" />
                           </button>

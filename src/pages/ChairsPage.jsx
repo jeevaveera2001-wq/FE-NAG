@@ -344,14 +344,14 @@ export const ChairsPage = () => {
                   <Edit2 className="w-4 h-4" />
                 </button>
 
-                {isAdmin && (
+                {isSuperAdmin && (
                   <button
                     onClick={() => {
                       setChairToDelete(chair);
                       setDeleteModalOpen(true);
                     }}
                     className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
-                    title="Remove Chair"
+                    title="Remove Chair (Super Admin Only)"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
