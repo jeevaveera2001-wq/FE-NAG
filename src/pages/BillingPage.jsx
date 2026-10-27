@@ -26,6 +26,10 @@ import {
   CreditCard,
   Eye,
   FileText,
+  ArrowRight,
+  ShoppingBag,
+  Layers,
+  Clock,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
@@ -70,6 +74,7 @@ export const BillingPage = () => {
 
   // Catalog UI Tabs & Filters
   const [catalogTab, setCatalogTab] = useState('services'); // 'services' | 'products'
+  const [activeMobileTab, setActiveMobileTab] = useState('catalog'); // 'catalog' | 'invoice' (for mobile screens)
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedGender, setSelectedGender] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -349,23 +354,57 @@ export const BillingPage = () => {
   const productCategories = ['All', ...new Set(products.map((p) => p.category))];
 
   return (
-    <div className="space-y-5 pb-12">
-      {/* POS Two-Column Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Services & Products Catalog (7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-4 sm:p-5 shadow-sm space-y-4">
+    <div className="w-full space-y-3 pb-16 lg:pb-6">
+      {/* Mobile View Switcher (Tabs) */}
+      <div className="lg:hidden flex items-center p-1 bg-gray-200 dark:bg-charcoal-800 rounded-xl text-xs font-bold">
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('catalog')}
+          className={`flex-1 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+            activeMobileTab === 'catalog'
+              ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow'
+              : 'text-gray-600 dark:text-gray-400'
+          }`}
+        >
+          <Scissors className="w-3.5 h-3.5" />
+          <span>Catalog ({catalogTab === 'services' ? filteredServices.length : filteredProducts.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('invoice')}
+          className={`flex-1 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+            activeMobileTab === 'invoice'
+              ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow'
+              : 'text-gray-600 dark:text-gray-400'
+          }`}
+        >
+          <Receipt className="w-3.5 h-3.5" />
+          <span>
+            Bill Invoice {cartItems.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-gold-500 text-black text-[10px]">{cartItems.length}</span>}
+          </span>
+        </button>
+      </div>
+
+      {/* POS Two-Column Workspace (Edge-to-Edge) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4 xl:gap-5 items-start w-full">
+        {/* Left Column: Services & Products Catalog */}
+        <div
+          className={`${
+            activeMobileTab === 'catalog' ? 'block' : 'hidden'
+          } lg:block lg:col-span-7 xl:col-span-7 2xl:col-span-8 space-y-3`}
+        >
+          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-3 sm:p-4 md:p-5 shadow-xs space-y-3.5">
             {/* Catalog Switcher & Search Bar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               {/* Services vs Products Tab Switch */}
-              <div className="bg-gray-100 dark:bg-charcoal-800 p-1 rounded-xl flex">
+              <div className="bg-gray-100 dark:bg-charcoal-800 p-1 rounded-xl flex shrink-0">
                 <button
                   type="button"
                   onClick={() => {
                     setCatalogTab('services');
                     setSelectedCategory('All');
                   }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                     catalogTab === 'services'
                       ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow'
                       : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
@@ -381,7 +420,7 @@ export const BillingPage = () => {
                     setCatalogTab('products');
                     setSelectedCategory('All');
                   }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                     catalogTab === 'products'
                       ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow'
                       : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
@@ -393,13 +432,13 @@ export const BillingPage = () => {
               </div>
 
               {/* Instant Search Bar */}
-              <div className="relative flex-1 max-w-xs">
+              <div className="relative flex-1 sm:max-w-xs md:max-w-sm">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={`Search ${catalogTab}...`}
+                  placeholder={`Search ${catalogTab === 'services' ? 'services, category...' : 'product, brand, SKU...'}`}
                   className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:outline-none"
                 />
               </div>
@@ -407,13 +446,13 @@ export const BillingPage = () => {
 
             {/* Gender Filters for Services */}
             {catalogTab === 'services' && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-                <span className="text-gray-400 font-semibold shrink-0">Target:</span>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                <span className="text-gray-400 font-semibold text-[11px] shrink-0 mr-1">Target:</span>
                 {['All', 'Men', 'Women', 'Unisex', 'Kids'].map((gender) => (
                   <button
                     key={gender}
                     onClick={() => setSelectedGender(gender)}
-                    className={`px-3 py-1 rounded-lg font-medium transition-all shrink-0 ${
+                    className={`px-3 py-1 rounded-lg font-medium transition-all shrink-0 text-xs ${
                       selectedGender === gender
                         ? 'bg-gold-500/20 text-gold-600 dark:text-gold-400 border border-gold-500/40 font-bold'
                         : 'bg-gray-50 dark:bg-charcoal-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100'
@@ -426,14 +465,14 @@ export const BillingPage = () => {
             )}
 
             {/* Category Chips Carousel */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
               {(catalogTab === 'services' ? serviceCategories : productCategories).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl font-medium transition-all shrink-0 ${
+                  className={`px-3 py-1 rounded-xl font-medium transition-all shrink-0 text-xs ${
                     selectedCategory === cat
-                      ? 'bg-charcoal-900 text-white dark:bg-white dark:text-black font-bold shadow-sm'
+                      ? 'bg-charcoal-900 text-white dark:bg-white dark:text-black font-bold shadow-xs'
                       : 'bg-gray-100 dark:bg-charcoal-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-charcoal-700'
                   }`}
                 >
@@ -442,40 +481,52 @@ export const BillingPage = () => {
               ))}
             </div>
 
-            {/* Items Grid View */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto pr-1">
+            {/* Items Grid View (Fills height without exiting screen size) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3 h-[calc(100vh-235px)] min-h-[460px] overflow-y-auto pr-1">
               {catalogTab === 'services' ? (
                 filteredServices.length > 0 ? (
                   filteredServices.map((srv) => (
                     <div
                       key={srv._id}
                       onClick={() => addItemToCart(srv, 'service')}
-                      className="p-3.5 rounded-xl bg-gray-50 dark:bg-charcoal-950/70 border border-gray-200 dark:border-charcoal-800 hover:border-gold-500/60 transition-all cursor-pointer group flex flex-col justify-between"
+                      className="p-3 sm:p-3.5 rounded-xl bg-gray-50 dark:bg-charcoal-950/70 border border-gray-200 dark:border-charcoal-800 hover:border-gold-500/60 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
                     >
                       <div>
-                        <div className="flex items-start justify-between gap-1 mb-1">
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-200 dark:bg-charcoal-800 text-gray-600 dark:text-gray-400">
+                        <div className="flex items-start justify-between gap-1 mb-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-200 dark:bg-charcoal-800 text-gray-700 dark:text-gray-300">
                             {srv.genderCategory} • {srv.category}
                           </span>
-                          <span className="text-[10px] text-gray-400 font-mono">{srv.duration}m</span>
+                          <span className="text-[10px] text-gray-400 font-mono flex items-center gap-0.5 shrink-0">
+                            <Clock className="w-3 h-3" />
+                            {srv.duration || 30}m
+                          </span>
                         </div>
                         <h4 className="text-xs font-bold text-gray-900 dark:text-white group-hover:text-gold-600 dark:group-hover:text-gold-400 line-clamp-2">
                           {srv.name}
                         </h4>
+                        {srv.description && (
+                          <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">
+                            {srv.description}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-200 dark:border-charcoal-800">
-                        <span className="font-bold text-sm text-gray-900 dark:text-white">
-                          ₹ {srv.price}
+                        <span className="font-extrabold text-sm text-gray-900 dark:text-white">
+                          ₹ {Number(srv.price || 0).toLocaleString('en-IN')}
                         </span>
-                        <button className="w-6 h-6 rounded-md bg-black text-white dark:bg-gold-500 dark:text-black flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+                        <button
+                          type="button"
+                          className="px-2.5 py-1 rounded-lg bg-black text-white dark:bg-gold-500 dark:text-black flex items-center gap-1 text-[11px] font-bold shadow-xs group-hover:scale-105 transition-transform"
+                        >
                           <Plus className="w-3.5 h-3.5" />
+                          <span>Add</span>
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-full py-12 text-center text-xs text-gray-400">
+                  <div className="col-span-full py-16 text-center text-xs text-gray-400">
                     No services found matching filters.
                   </div>
                 )
@@ -484,16 +535,18 @@ export const BillingPage = () => {
                   <div
                     key={prd._id}
                     onClick={() => addItemToCart(prd, 'product')}
-                    className="p-3.5 rounded-xl bg-gray-50 dark:bg-charcoal-950/70 border border-gray-200 dark:border-charcoal-800 hover:border-gold-500/60 transition-all cursor-pointer group flex flex-col justify-between"
+                    className="p-3 sm:p-3.5 rounded-xl bg-gray-50 dark:bg-charcoal-950/70 border border-gray-200 dark:border-charcoal-800 hover:border-gold-500/60 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-start justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-200 dark:bg-charcoal-800 text-gray-600 dark:text-gray-400">
-                          {prd.brand}
+                      <div className="flex items-start justify-between gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-200 dark:bg-charcoal-800 text-gray-700 dark:text-gray-300">
+                          {prd.brand || 'Retail'}
                         </span>
                         <span
-                          className={`text-[10px] font-bold ${
-                            prd.currentStock <= prd.minStockWarning ? 'text-red-500' : 'text-green-600 dark:text-green-400'
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                            prd.currentStock <= prd.minStockWarning
+                              ? 'bg-red-500/10 text-red-500'
+                              : 'bg-green-500/10 text-green-600 dark:text-green-400'
                           }`}
                         >
                           {prd.currentStock} in stock
@@ -502,21 +555,25 @@ export const BillingPage = () => {
                       <h4 className="text-xs font-bold text-gray-900 dark:text-white group-hover:text-gold-600 dark:group-hover:text-gold-400 line-clamp-2">
                         {prd.name}
                       </h4>
-                      <p className="text-[10px] text-gray-400 font-mono mt-0.5">{prd.sku}</p>
+                      <p className="text-[10px] text-gray-400 font-mono mt-0.5">SKU: {prd.sku}</p>
                     </div>
 
                     <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-200 dark:border-charcoal-800">
-                      <span className="font-bold text-sm text-gray-900 dark:text-white">
-                        ₹ {prd.sellingPrice}
+                      <span className="font-extrabold text-sm text-gray-900 dark:text-white">
+                        ₹ {Number(prd.sellingPrice || 0).toLocaleString('en-IN')}
                       </span>
-                      <button className="w-6 h-6 rounded-md bg-black text-white dark:bg-gold-500 dark:text-black flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+                      <button
+                        type="button"
+                        className="px-2.5 py-1 rounded-lg bg-black text-white dark:bg-gold-500 dark:text-black flex items-center gap-1 text-[11px] font-bold shadow-xs group-hover:scale-105 transition-transform"
+                      >
                         <Plus className="w-3.5 h-3.5" />
+                        <span>Add</span>
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="col-span-full py-12 text-center text-xs text-gray-400">
+                <div className="col-span-full py-16 text-center text-xs text-gray-400">
                   No retail products found.
                 </div>
               )}
@@ -524,17 +581,21 @@ export const BillingPage = () => {
           </div>
         </div>
 
-        {/* Right Column: Customer Details, Live Cart & Billing Summary (5 cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* Right Column: Customer Details, Live Cart & Billing Summary */}
+        <div
+          className={`${
+            activeMobileTab === 'invoice' ? 'block' : 'hidden'
+          } lg:block lg:col-span-5 xl:col-span-5 2xl:col-span-4 lg:sticky lg:top-20 space-y-3.5 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto pr-1`}
+        >
           {/* Customer & Station Card */}
-          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-4 sm:p-5 shadow-sm space-y-3.5">
+          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-3.5 sm:p-4 md:p-5 shadow-xs space-y-3">
             <h3 className="font-bold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
               <User className="w-4 h-4 text-gold-500" />
               1. Customer & Station Setup
             </h3>
 
             {/* Mobile & Auto-lookup */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Mobile Number <span className="text-red-500">*</span>
@@ -569,7 +630,7 @@ export const BillingPage = () => {
             </div>
 
             {/* Chair & Attendant Pickers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Select Chair / Station <span className="text-red-500">*</span>
@@ -611,7 +672,7 @@ export const BillingPage = () => {
           </div>
 
           {/* Cart & Financial Calculations Card */}
-          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-4 sm:p-5 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-3.5 sm:p-4 md:p-5 shadow-xs space-y-3.5">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-charcoal-800">
               <h3 className="font-bold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                 <Receipt className="w-4 h-4 text-gold-500" />
@@ -619,6 +680,7 @@ export const BillingPage = () => {
               </h3>
               {cartItems.length > 0 && (
                 <button
+                  type="button"
                   onClick={() => setCartItems([])}
                   className="text-[11px] text-red-500 hover:underline flex items-center gap-1"
                 >
@@ -629,7 +691,7 @@ export const BillingPage = () => {
             </div>
 
             {/* Cart Items List */}
-            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
               {cartItems.length === 0 ? (
                 <div className="py-8 text-center text-xs text-gray-400">
                   Cart is empty. Click services or products on the left to add items.
@@ -649,6 +711,7 @@ export const BillingPage = () => {
 
                     <div className="flex items-center gap-1.5">
                       <button
+                        type="button"
                         onClick={() => updateQuantity(idx, -1)}
                         className="w-5 h-5 rounded bg-gray-200 dark:bg-charcoal-800 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-300"
                       >
@@ -656,6 +719,7 @@ export const BillingPage = () => {
                       </button>
                       <span className="w-6 text-center font-bold font-mono">{item.quantity}</span>
                       <button
+                        type="button"
                         onClick={() => updateQuantity(idx, 1)}
                         className="w-5 h-5 rounded bg-gray-200 dark:bg-charcoal-800 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-300"
                       >
@@ -668,6 +732,7 @@ export const BillingPage = () => {
                     </span>
 
                     <button
+                      type="button"
                       onClick={() => removeItem(idx)}
                       className="text-gray-400 hover:text-red-500 p-1"
                     >
@@ -679,7 +744,7 @@ export const BillingPage = () => {
             </div>
 
             {/* Discount & Tax Controls */}
-            <div className="pt-2 border-t border-gray-100 dark:border-charcoal-800 grid grid-cols-2 gap-3 text-xs">
+            <div className="pt-2 border-t border-gray-100 dark:border-charcoal-800 grid grid-cols-2 gap-2.5 text-xs">
               <div>
                 <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Discount
@@ -729,7 +794,7 @@ export const BillingPage = () => {
                     onClick={() => setPaymentMethod(method)}
                     className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all border ${
                       paymentMethod === method
-                        ? 'bg-black text-white dark:bg-gold-500 dark:text-black border-black dark:border-gold-500 shadow-sm'
+                        ? 'bg-black text-white dark:bg-gold-500 dark:text-black border-black dark:border-gold-500 shadow-xs'
                         : 'bg-gray-50 dark:bg-charcoal-800 border-gray-200 dark:border-charcoal-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100'
                     }`}
                   >
@@ -832,6 +897,24 @@ export const BillingPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Floating Cart Summary (When viewing Catalog and items exist) */}
+      {cartItems.length > 0 && activeMobileTab === 'catalog' && (
+        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-30 bg-black text-white dark:bg-gold-500 dark:text-black p-3 rounded-2xl shadow-2xl flex items-center justify-between border border-gold-500/50">
+          <div>
+            <span className="text-xs font-bold block">{cartItems.length} items added</span>
+            <span className="text-sm font-extrabold font-mono">Total: ₹ {grandTotal}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveMobileTab('invoice')}
+            className="px-4 py-2 bg-white text-black dark:bg-black dark:text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow"
+          >
+            <span>Review & Bill</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Bill Preview & Print Modal */}
       {previewOpen && generatedBill && (

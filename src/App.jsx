@@ -52,7 +52,7 @@ const ProtectedLayout = () => {
       >
         <Navbar />
 
-        <main className="flex-1 p-2 sm:p-4 md:p-6 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-2 sm:p-3 md:p-4 w-full">
           <Outlet />
         </main>
       </div>

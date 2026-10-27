@@ -8,6 +8,7 @@ export const StatCard = ({
   icon: Icon,
   trend,
   trendPositive,
+  comparisonLabel = 'vs previous period',
   accentColor = 'gold',
   prefix = '',
 }) => {
@@ -49,7 +50,7 @@ export const StatCard = ({
               {trend}
             </span>
           )}
-          <span className="text-gray-400 text-[10px]">vs previous cycle</span>
+          <span className="text-gray-400 text-[10px]">{comparisonLabel}</span>
         </div>
       )}
     </div>

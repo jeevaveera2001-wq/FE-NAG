@@ -133,31 +133,36 @@ export const DashboardPage = () => {
           value={`₹ ${Number(summary.todaySales || 0).toLocaleString('en-IN')}`}
           subtitle={`${summary.todayBills || 0} Bills Generated Today`}
           icon={DollarSign}
-          trend="+12.5%"
-          trendPositive={true}
+          trend={summary.todayTrend?.percentage}
+          trendPositive={summary.todayTrend?.isPositive}
+          comparisonLabel={summary.todayTrend?.label || 'vs yesterday'}
         />
         <StatCard
           title="Weekly Sales"
           value={`₹ ${Number(summary.weekSales || 0).toLocaleString('en-IN')}`}
           subtitle={`${summary.weekBills || 0} Bills this week`}
           icon={Receipt}
-          trend="+8.2%"
-          trendPositive={true}
+          trend={summary.weekTrend?.percentage}
+          trendPositive={summary.weekTrend?.isPositive}
+          comparisonLabel={summary.weekTrend?.label || 'vs last week'}
         />
         <StatCard
           title="Monthly Sales"
           value={`₹ ${Number(summary.monthSales || 0).toLocaleString('en-IN')}`}
           subtitle={`${summary.monthBills || 0} Bills this month`}
           icon={TrendingUp}
-          trend="+15.4%"
-          trendPositive={true}
+          trend={summary.monthTrend?.percentage}
+          trendPositive={summary.monthTrend?.isPositive}
+          comparisonLabel={summary.monthTrend?.label || 'vs last month'}
         />
         <StatCard
           title="Styling Stations"
           value={`${summary.activeChairs || 0} / ${summary.totalChairs || 0}`}
-          subtitle="Currently Occupied Chairs"
+          subtitle={`${(summary.totalChairs || 0) - (summary.activeChairs || 0)} Stations Available`}
           icon={Armchair}
-          trendPositive={true}
+          trend={summary.totalChairs > 0 ? `${Math.round(((summary.activeChairs || 0) / summary.totalChairs) * 100)}%` : null}
+          trendPositive={(summary.activeChairs || 0) > 0}
+          comparisonLabel="Occupancy Rate"
         />
       </div>
 
