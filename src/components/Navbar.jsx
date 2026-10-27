@@ -10,7 +10,12 @@ export const Navbar = () => {
     <header className="h-13 sm:h-16 bg-white border-b border-gray-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
       {/* Left: Brand Welcome / Mobile Brand Badge */}
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="block lg:hidden">
+        <div className="flex lg:hidden items-center gap-1.5">
+          <img
+            src="/vs-logo.png"
+            alt="VS Scissor Logo"
+            className="w-7 h-7 object-contain rounded-lg border border-gold-500/50 bg-black p-0.5 shadow-xs"
+          />
           <span className="font-serif font-black text-xs sm:text-sm text-gray-900 tracking-wider block">
             NAGULAN <span className="text-[10px] text-gold-500 font-sans font-bold">POS</span>
           </span>

@@ -67,8 +67,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
 
         {/* Compact Logo Emblem (Visible on mobile or when collapsed on desktop) */}
         <div className={`flex items-center justify-center ${isCollapsed ? 'w-full' : 'lg:hidden w-full'}`}>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black border border-gold-500 flex items-center justify-center shrink-0 shadow-sm">
-            <Scissors className="w-4 h-4 sm:w-5 sm:h-5 text-gold-500 transform -rotate-45" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black border border-gold-500 overflow-hidden flex items-center justify-center shrink-0 shadow-sm p-0.5">
+            <img
+              src="/vs-logo.png"
+              alt="VS Studio Scissor Logo"
+              className="w-full h-full object-contain rounded-lg"
+            />
           </div>
         </div>
 
