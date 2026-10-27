@@ -200,8 +200,8 @@ export const ServicesPage = () => {
           </p>
         </div>
 
-        {!isReception && (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          {!isReception && (
             <button
               onClick={exportToExcel}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 hover:bg-gray-50 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 shadow-sm"
@@ -209,16 +209,16 @@ export const ServicesPage = () => {
               <FileSpreadsheet className="w-4 h-4 text-green-600" />
               <span>Export Menu</span>
             </button>
+          )}
 
-            <button
-              onClick={openCreateModal}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold text-xs shadow-md transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Service</span>
-            </button>
-          </div>
-        )}
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold text-xs shadow-md transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Service</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -332,31 +332,27 @@ export const ServicesPage = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      {!isReception ? (
-                        <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => openEditModal(srv)}
+                          className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-charcoal-800 rounded-lg"
+                          title="Edit Service"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        {isSuperAdmin && (
                           <button
-                            onClick={() => openEditModal(srv)}
-                            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-charcoal-800 rounded-lg"
-                            title="Edit Service"
+                            onClick={() => {
+                              setServiceToDelete(srv);
+                              setDeleteModalOpen(true);
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
+                            title="Remove Service (Super Admin Only)"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                          {isSuperAdmin && (
-                            <button
-                              onClick={() => {
-                                setServiceToDelete(srv);
-                                setDeleteModalOpen(true);
-                              }}
-                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded-lg"
-                              title="Remove Service (Super Admin Only)"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-gray-400 italic">View Only</span>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

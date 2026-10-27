@@ -79,11 +79,11 @@ export const App = () => {
 
       {/* Authenticated Dashboard Routes */}
       <Route element={<ProtectedLayout />}>
-        {/* Admin & Super Admin Only for Dashboard, Chairs, Attendants, Payments */}
+        {/* Dashboard, Chairs, Attendants accessible to Reception, Admin, and Super Admin */}
         <Route
           path="/"
           element={
-            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+            <RoleGuard allowedRoles={['reception', 'admin', 'superadmin']} fallbackPath="/billing">
               <DashboardPage />
             </RoleGuard>
           }
@@ -103,7 +103,7 @@ export const App = () => {
         <Route
           path="/chairs"
           element={
-            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+            <RoleGuard allowedRoles={['reception', 'admin', 'superadmin']} fallbackPath="/billing">
               <ChairsPage />
             </RoleGuard>
           }
@@ -111,7 +111,7 @@ export const App = () => {
         <Route
           path="/attendants"
           element={
-            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+            <RoleGuard allowedRoles={['reception', 'admin', 'superadmin']} fallbackPath="/billing">
               <AttendantsPage />
             </RoleGuard>
           }

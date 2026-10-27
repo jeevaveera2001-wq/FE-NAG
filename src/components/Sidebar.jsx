@@ -31,14 +31,14 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   const navItems = [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard, visible: !isReception },
+    { label: 'Dashboard', path: '/', icon: LayoutDashboard, visible: true },
     { label: 'Billing / POS', path: '/billing', icon: Receipt, visible: true },
     { label: 'Sales History', path: '/sales', icon: History, visible: true },
     { label: 'Payments', path: '/payments', icon: CreditCard, visible: !isReception },
     { label: 'Services & Menu', path: '/services', icon: Scissors, visible: true },
     { label: 'Products & Stock', path: '/products', icon: Package, visible: true },
-    { label: 'Chairs & Stations', path: '/chairs', icon: Armchair, visible: !isReception },
-    { label: 'Attendants', path: '/attendants', icon: Users, visible: !isReception },
+    { label: 'Chairs & Stations', path: '/chairs', icon: Armchair, visible: true },
+    { label: 'Attendants', path: '/attendants', icon: Users, visible: true },
     { label: 'Customers', path: '/customers', icon: UserSquare2, visible: true },
     { label: 'Reports & Analytics', path: '/reports', icon: BarChart3, visible: isAdmin },
     { label: 'Admin & Reception', path: '/admin-management', icon: ShieldCheck, visible: isSuperAdmin },
