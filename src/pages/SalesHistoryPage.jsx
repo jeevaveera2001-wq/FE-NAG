@@ -43,6 +43,23 @@ export const SalesHistoryPage = () => {
   const [cancellingBill, setCancellingBill] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  // Attendants list for dropdown modification
+  const [attendants, setAttendants] = useState([]);
+
+  useEffect(() => {
+    const loadAttendants = async () => {
+      try {
+        const res = await api.get('/attendants');
+        if (res.data.success) {
+          setAttendants(res.data.attendants || []);
+        }
+      } catch (err) {
+        console.error('Failed to load attendants list:', err);
+      }
+    };
+    loadAttendants();
+  }, []);
+
   const fetchBills = async (page = 1) => {
     try {
       setLoading(true);
@@ -91,6 +108,58 @@ export const SalesHistoryPage = () => {
     } finally {
       setCancelLoading(false);
     }
+  };
+
+  // Modify Bill Fields Handler (Attendant & Payment dropdowns for Super Admin & Admin)
+  const handleUpdateBillField = async (billId, updateData, successMsg) => {
+    try {
+      const res = await api.put(`/bills/${billId}`, updateData);
+      if (res.data.success) {
+        toast.success(successMsg || 'Bill updated successfully');
+        setBills((prev) =>
+          prev.map((b) => (b._id === billId ? { ...b, ...res.data.bill } : b))
+        );
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update bill');
+    }
+  };
+
+  const handleAttendantChange = (bill, attendantId) => {
+    const att = attendants.find((a) => a._id === attendantId);
+    if (!att) return;
+    handleUpdateBillField(
+      bill._id,
+      {
+        attendant: { attendantId: att._id, name: att.fullName },
+        reason: `Attendant modified to ${att.fullName} by ${user?.fullName || user?.role}`,
+      },
+      `Attendant updated to ${att.fullName}`
+    );
+  };
+
+  const handlePaymentMethodChange = (bill, newMethod) => {
+    if (bill.paymentMethod === newMethod) return;
+    handleUpdateBillField(
+      bill._id,
+      {
+        paymentMethod: newMethod,
+        reason: `Payment method modified to ${newMethod} by ${user?.fullName || user?.role}`,
+      },
+      `Payment method updated to ${newMethod}`
+    );
+  };
+
+  const handlePaymentStatusChange = (bill, newStatus) => {
+    if (bill.paymentStatus === newStatus) return;
+    handleUpdateBillField(
+      bill._id,
+      {
+        paymentStatus: newStatus,
+        reason: `Payment status modified to ${newStatus} by ${user?.fullName || user?.role}`,
+      },
+      `Payment status updated to ${newStatus}`
+    );
   };
 
   // Export to Excel
@@ -339,7 +408,32 @@ export const SalesHistoryPage = () => {
                       <span className="font-semibold text-gray-900 dark:text-white block">{bill.customer?.name}</span>
                       <span className="text-[10px] text-gray-500 font-mono">{bill.customer?.mobile}</span>
                     </td>
-                    <td className="py-3.5 px-4">{bill.attendant?.name || 'Stylist'}</td>
+                    <td className="py-3.5 px-4">
+                      {(isSuperAdmin || isAdmin) && bill.status !== 'Cancelled' ? (
+                        <select
+                          value={bill.attendant?.attendantId || ''}
+                          onChange={(e) => handleAttendantChange(bill, e.target.value)}
+                          className="text-xs bg-white dark:bg-charcoal-900 border border-gray-300 dark:border-charcoal-700 rounded-lg px-2 py-1 font-medium text-gray-900 dark:text-gray-100 hover:border-gold-500 focus:ring-1 focus:ring-gold-500 focus:outline-none cursor-pointer max-w-[145px] truncate shadow-xs transition-colors"
+                          title="Change Attendant"
+                        >
+                          <option value="" disabled>-- Select Stylist --</option>
+                          {bill.attendant?.attendantId && !attendants.some((a) => a._id === bill.attendant.attendantId) && (
+                            <option value={bill.attendant.attendantId}>
+                              {bill.attendant.name || 'Current Stylist'}
+                            </option>
+                          )}
+                          {attendants.map((att) => (
+                            <option key={att._id} value={att._id}>
+                              {att.fullName} {att.attendantId ? `(${att.attendantId})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white">
+                          {bill.attendant?.name || 'Stylist'}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-3.5 px-4">{bill.chair?.name || bill.chair?.chairNumber || 'Main'}</td>
                     <td className="py-3.5 px-4">
                       <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-charcoal-800 text-[10px] font-semibold">
@@ -350,22 +444,57 @@ export const SalesHistoryPage = () => {
                       ₹ {Number(bill.grandTotal).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4">
-                      <div>
-                        <span className="font-semibold text-gray-900 dark:text-gray-100 block">
-                          {bill.paymentMethod}
-                        </span>
-                        <span
-                          className={`text-[10px] font-bold ${
-                            bill.paymentStatus === 'Paid'
-                              ? 'text-green-600 dark:text-green-400'
-                              : bill.paymentStatus === 'Partial'
-                              ? 'text-amber-500'
-                              : 'text-red-500'
-                          }`}
-                        >
-                          {bill.paymentStatus}
-                        </span>
-                      </div>
+                      {(isSuperAdmin || isAdmin) && bill.status !== 'Cancelled' ? (
+                        <div className="space-y-1.5 min-w-[125px]">
+                          <select
+                            value={bill.paymentMethod || 'Cash'}
+                            onChange={(e) => handlePaymentMethodChange(bill, e.target.value)}
+                            className="w-full text-xs font-semibold bg-white dark:bg-charcoal-900 border border-gray-300 dark:border-charcoal-700 rounded-lg px-2 py-1 text-gray-900 dark:text-gray-100 hover:border-gold-500 focus:ring-1 focus:ring-gold-500 focus:outline-none cursor-pointer shadow-xs transition-colors"
+                            title="Modify Payment Method"
+                          >
+                            {['Cash', 'UPI', 'Debit card', 'Credit card', 'Split payment', 'Other'].map((method) => (
+                              <option key={method} value={method}>
+                                {method}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={bill.paymentStatus || 'Paid'}
+                            onChange={(e) => handlePaymentStatusChange(bill, e.target.value)}
+                            className={`w-full text-[10px] font-bold bg-white dark:bg-charcoal-900 border border-gray-200 dark:border-charcoal-700 rounded px-1.5 py-0.5 cursor-pointer transition-colors ${
+                              bill.paymentStatus === 'Paid'
+                                ? 'text-green-600 dark:text-green-400'
+                                : bill.paymentStatus === 'Partial'
+                                ? 'text-amber-500'
+                                : 'text-red-500'
+                            }`}
+                            title="Modify Payment Status"
+                          >
+                            {['Paid', 'Partial', 'Unpaid'].map((st) => (
+                              <option key={st} value={st} className="text-gray-900 dark:text-white bg-white dark:bg-charcoal-900">
+                                {st}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100 block">
+                            {bill.paymentMethod}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold ${
+                              bill.paymentStatus === 'Paid'
+                                ? 'text-green-600 dark:text-green-400'
+                                : bill.paymentStatus === 'Partial'
+                                ? 'text-amber-500'
+                                : 'text-red-500'
+                            }`}
+                          >
+                            {bill.paymentStatus}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="py-3.5 px-4">
                       <span
@@ -401,15 +530,15 @@ export const SalesHistoryPage = () => {
                           <FileText className="w-4 h-4" />
                         </button>
 
-                        {/* Cancel bill (Super Admin Only - Admins strictly prohibited from deleting/cancelling sales) */}
-                        {isSuperAdmin && bill.status !== 'Cancelled' && (
+                        {/* Cancel bill (Super Admin & Admin) */}
+                        {(isSuperAdmin || isAdmin) && bill.status !== 'Cancelled' && (
                           <button
                             onClick={() => {
                               setCancellingBill(bill);
                               setCancelModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-500/10"
-                            title="Cancel Bill (Super Admin Only)"
+                            className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-500/10 transition-colors"
+                            title="Cancel Bill"
                           >
                             <Ban className="w-4 h-4" />
                           </button>
