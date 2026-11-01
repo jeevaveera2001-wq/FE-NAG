@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 
 // Pages
 import LoginPage from './pages/LoginPage';
+import PresentDayPage from './pages/PresentDayPage';
 import DashboardPage from './pages/DashboardPage';
 import BillingPage from './pages/BillingPage';
 import SalesHistoryPage from './pages/SalesHistoryPage';
@@ -79,7 +80,15 @@ export const App = () => {
 
       {/* Authenticated Dashboard Routes */}
       <Route element={<ProtectedLayout />}>
-        {/* Dashboard, Chairs, Attendants accessible to Reception, Admin, and Super Admin */}
+        {/* Present Day, Dashboard, Chairs, Attendants accessible to Reception, Admin, and Super Admin */}
+        <Route
+          path="/present-day"
+          element={
+            <RoleGuard allowedRoles={['reception', 'admin', 'superadmin']} fallbackPath="/billing">
+              <PresentDayPage />
+            </RoleGuard>
+          }
+        />
         <Route
           path="/"
           element={

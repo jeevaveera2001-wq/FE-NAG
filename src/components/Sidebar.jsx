@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
+  CalendarDays,
   LayoutDashboard,
   Receipt,
   History,
@@ -31,6 +32,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   const navItems = [
+    { label: 'Present Day', path: '/present-day', icon: CalendarDays, visible: true },
     { label: 'Dashboard', path: '/', icon: LayoutDashboard, visible: true },
     { label: 'Billing / POS', path: '/billing', icon: Receipt, visible: true },
     { label: 'Sales History', path: '/sales', icon: History, visible: true },
