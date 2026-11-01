@@ -43,6 +43,13 @@ export const SalesHistoryPage = () => {
   const [cancellingBill, setCancellingBill] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  // Status Change Modal with Mandatory Admin Notes
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusModalBill, setStatusModalBill] = useState(null);
+  const [targetStatus, setTargetStatus] = useState('');
+  const [statusNotes, setStatusNotes] = useState('');
+  const [statusChangeLoading, setStatusChangeLoading] = useState(false);
+
   // Attendants list for dropdown modification
   const [attendants, setAttendants] = useState([]);
 
@@ -148,6 +155,52 @@ export const SalesHistoryPage = () => {
       },
       `Payment method updated to ${newMethod}`
     );
+  };
+
+  const handleStatusDropdownSelect = (bill, newStatus) => {
+    if (bill.status === newStatus) return;
+    if (newStatus === 'Cancelled') {
+      setCancellingBill(bill);
+      setCancelModalOpen(true);
+      return;
+    }
+    // Open status change modal with notes
+    setStatusModalBill(bill);
+    setTargetStatus(newStatus);
+    setStatusNotes('');
+    setStatusModalOpen(true);
+  };
+
+  const handleConfirmStatusChange = async (e) => {
+    if (e) e.preventDefault();
+    if (!statusNotes.trim()) {
+      toast.error('Please enter a note / reason for changing the bill status');
+      return;
+    }
+    if (!statusModalBill || !targetStatus) return;
+
+    try {
+      setStatusChangeLoading(true);
+      const res = await api.put(`/bills/${statusModalBill._id}`, {
+        status: targetStatus,
+        reason: statusNotes.trim(),
+        notes: statusNotes.trim(),
+      });
+      if (res.data.success) {
+        toast.success(`Bill #${statusModalBill.billNumber} status updated to ${targetStatus}`);
+        setBills((prev) =>
+          prev.map((b) => (b._id === statusModalBill._id ? { ...b, ...res.data.bill } : b))
+        );
+        setStatusModalOpen(false);
+        setStatusModalBill(null);
+        setTargetStatus('');
+        setStatusNotes('');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update bill status');
+    } finally {
+      setStatusChangeLoading(false);
+    }
   };
 
   const handlePaymentStatusChange = (bill, newStatus) => {
@@ -497,17 +550,42 @@ export const SalesHistoryPage = () => {
                       )}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          bill.status === 'Completed'
-                            ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20'
-                            : bill.status === 'Draft'
-                            ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'
-                            : 'bg-red-500/10 text-red-500 border border-red-500/20'
-                        }`}
-                      >
-                        {bill.status}
-                      </span>
+                      {(isSuperAdmin || isAdmin) && bill.status !== 'Cancelled' ? (
+                        <div className="min-w-[115px]">
+                          <select
+                            value={bill.status}
+                            onChange={(e) => handleStatusDropdownSelect(bill, e.target.value)}
+                            className={`w-full text-xs font-bold rounded-lg px-2 py-1 cursor-pointer border transition-colors shadow-xs ${
+                              bill.status === 'Completed'
+                                ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-300 dark:border-green-800 hover:border-green-500'
+                                : 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-800 hover:border-yellow-500'
+                            }`}
+                            title="Modify Bill Status (Requires Admin Note)"
+                          >
+                            <option value="Completed" className="text-green-700 bg-white dark:bg-charcoal-900 font-bold">
+                              Completed
+                            </option>
+                            <option value="Draft" className="text-yellow-700 bg-white dark:bg-charcoal-900 font-bold">
+                              Draft
+                            </option>
+                            <option value="Cancelled" className="text-red-600 bg-white dark:bg-charcoal-900 font-bold">
+                              Cancelled
+                            </option>
+                          </select>
+                        </div>
+                      ) : (
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            bill.status === 'Completed'
+                              ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20'
+                              : bill.status === 'Draft'
+                              ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'
+                              : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                          }`}
+                        >
+                          {bill.status}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
@@ -563,6 +641,118 @@ export const SalesHistoryPage = () => {
           onClose={() => setPreviewOpen(false)}
           bill={selectedBill}
         />
+      )}
+
+      {/* Bill Status Change Modal with Mandatory Admin Notes */}
+      {statusModalOpen && statusModalBill && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-charcoal-900 w-full max-w-md rounded-2xl shadow-2xl border border-gray-200 dark:border-charcoal-800 p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-charcoal-800">
+              <h3 className="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2">
+                <span>Update Bill Status</span>
+                <span className="font-mono text-purple-600 dark:text-purple-400 text-sm">
+                  #{statusModalBill.billNumber}
+                </span>
+              </h3>
+              <button
+                onClick={() => {
+                  setStatusModalOpen(false);
+                  setStatusModalBill(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Status Flow Badge */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-charcoal-950 rounded-xl border border-gray-200 dark:border-charcoal-800 text-xs">
+              <div className="text-center">
+                <span className="block text-[10px] uppercase font-bold text-gray-400">Current Status</span>
+                <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                  statusModalBill.status === 'Draft'
+                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                    : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                }`}>
+                  {statusModalBill.status}
+                </span>
+              </div>
+              <span className="text-gray-400 font-bold">➔</span>
+              <div className="text-center">
+                <span className="block text-[10px] uppercase font-bold text-gray-400">New Target Status</span>
+                <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                  targetStatus === 'Completed'
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                }`}>
+                  {targetStatus}
+                </span>
+              </div>
+            </div>
+
+            {/* Explanatory notice */}
+            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+              {targetStatus === 'Completed'
+                ? 'Converting this draft to Completed will calculate this bill in sales totals, revenue reports, and allocated attendant commissions.'
+                : 'Moving this bill back to Draft will exclude it from completed sales and attendant metrics.'}
+            </p>
+
+            {/* Mandatory Notes Field */}
+            <form onSubmit={handleConfirmStatusChange} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Administrative Reason / Notes <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={statusNotes}
+                  onChange={(e) => setStatusNotes(e.target.value)}
+                  placeholder="e.g., Reception mistakenly put draft instead of print bill..."
+                  rows={3}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 resize-none"
+                  required
+                />
+              </div>
+
+              {/* Quick suggestion chips */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  'Reception mistakenly saved as draft instead of print bill',
+                  'Customer payment completed, converted from draft',
+                  'Verified and approved by admin',
+                ].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setStatusNotes(suggestion)}
+                    className="text-[10px] px-2 py-1 rounded-lg bg-gray-100 dark:bg-charcoal-800 text-gray-600 dark:text-gray-300 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900/40 dark:hover:text-purple-300 transition-colors"
+                  >
+                    + {suggestion}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-charcoal-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusModalOpen(false);
+                    setStatusModalBill(null);
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-charcoal-800 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!statusNotes.trim() || statusChangeLoading}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 disabled:opacity-50 transition-all shadow-sm"
+                >
+                  {statusChangeLoading ? 'Updating Status...' : 'Confirm Status Change'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Mandatory Cancel Reason Modal */}
