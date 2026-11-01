@@ -4,8 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import ConfirmModal from '../components/ConfirmModal';
+import BillPreviewModal from '../components/BillPreviewModal';
 import {
   Users,
+  ArrowRight,
+  Sparkles,
+  CalendarDays,
+  RefreshCw,
+  Eye,
+  Layers,
+  QrCode,
+  CreditCard,
   Plus,
   Edit2,
   Trash2,
@@ -26,6 +35,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import toast from 'react-hot-toast';
 
 export const AttendantsPage = () => {
@@ -44,6 +54,57 @@ export const AttendantsPage = () => {
 
   // Active Tab: 'roster' | 'salary'
   const [activeTab, setActiveTab] = useState('roster');
+  // Attendant Financial Dashboard State
+  const getTodayStr = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  };
+  const getThisMonthStr = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const [selectedAttendantId, setSelectedAttendantId] = useState('');
+  const [selectedDate, setSelectedDate] = useState(getTodayStr());
+  const [selectedMonth, setSelectedMonth] = useState(getThisMonthStr());
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [previewBill, setPreviewBill] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const fetchAttendantDashboard = async (attId, dateVal, monthVal) => {
+    const idToUse = attId || selectedAttendantId;
+    if (!idToUse) return;
+
+    const dateToUse = dateVal || selectedDate;
+    const monthToUse = monthVal || selectedMonth;
+
+    try {
+      setDashboardLoading(true);
+      const res = await api.get(`/attendants/${idToUse}/dashboard?date=${dateToUse}&month=${monthToUse}`);
+      if (res.data.success) {
+        setDashboardData(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load attendant dashboard:', err);
+      toast.error('Failed to load stylist financial performance');
+    } finally {
+      setDashboardLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (attendants.length > 0 && !selectedAttendantId) {
+      setSelectedAttendantId(attendants[0]._id);
+    }
+  }, [attendants, selectedAttendantId]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard' && selectedAttendantId) {
+      fetchAttendantDashboard(selectedAttendantId, selectedDate, selectedMonth);
+    }
+  }, [activeTab, selectedAttendantId, selectedDate, selectedMonth]);
+
 
   // Attendant Add/Edit Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -388,6 +449,17 @@ export const AttendantsPage = () => {
           <Calculator className="w-4 h-4" />
           <span>Revenue, Commission & Salary Breakdown</span>
         </button>
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            activeTab === 'dashboard'
+              ? 'bg-black text-white dark:bg-gold-500 dark:text-black shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-charcoal-800'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4 text-purple-500" />
+          <span>Stylist Performance & Financial Dashboard</span>
+        </button>
       </div>
 
       {/* Filter Bar */}
@@ -496,6 +568,17 @@ export const AttendantsPage = () => {
                               title="View Pay Slip"
                             >
                               Slip
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedAttendantId(att._id);
+                                setActiveTab('dashboard');
+                              }}
+                              className="px-2 py-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500 hover:text-white rounded text-[10px] font-semibold transition-all flex items-center gap-1"
+                              title="View Stylist Financial & Payment Dashboard"
+                            >
+                              <TrendingUp className="w-3 h-3" />
+                              Dashboard
                             </button>
 
                             <button
@@ -637,6 +720,18 @@ export const AttendantsPage = () => {
                             ₹ {Math.round(netPayable).toLocaleString('en-IN')}
                           </td>
                           <td className="py-3 px-3.5 text-right">
+
+                            <button
+                              onClick={() => {
+                                setSelectedAttendantId(att._id);
+                                setActiveTab('dashboard');
+                              }}
+                              className="mr-1.5 px-2.5 py-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500 hover:text-white rounded-lg text-[10px] font-bold transition-all inline-flex items-center gap-1"
+                              title="View Attendant Financial Dashboard"
+                            >
+                              <TrendingUp className="w-3 h-3" />
+                              Dashboard
+                            </button>
                             <button
                               onClick={() => openPaySlip(att)}
                               className="px-2.5 py-1 bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 rounded-lg text-[10px] font-bold shadow-sm transition-all"
@@ -650,6 +745,550 @@ export const AttendantsPage = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* VIEW 3: Dedicated Attendant Financial & Performance Dashboard */}
+      {activeTab === 'dashboard' && (
+        <div className="space-y-5">
+          {/* Dashboard Control Toolbar */}
+          <div className="bg-white dark:bg-charcoal-900 p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-charcoal-800 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                  Choose Stylist / Attendant
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedAttendantId}
+                    onChange={(e) => setSelectedAttendantId(e.target.value)}
+                    className="w-full sm:w-64 px-3.5 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-gray-50 dark:bg-charcoal-950 text-gray-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-purple-500 shadow-sm"
+                  >
+                    {attendants.map((att) => (
+                      <option key={att._id} value={att._id}>
+                        {att.fullName} ({att.attendantId})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                onClick={() => fetchAttendantDashboard(selectedAttendantId, selectedDate, selectedMonth)}
+                disabled={dashboardLoading}
+                className="self-end px-3 py-2 rounded-xl border border-gray-200 dark:border-charcoal-800 hover:bg-gray-100 dark:hover:bg-charcoal-800 text-gray-600 dark:text-gray-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                title="Refresh Metrics"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${dashboardLoading ? 'animate-spin text-purple-500' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {/* Date and Month Controls */}
+            <div className="flex flex-wrap items-center gap-3 border-t lg:border-t-0 pt-3 lg:pt-0 border-gray-100 dark:border-charcoal-800">
+              {/* Day Filter */}
+              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-charcoal-950 p-1.5 rounded-xl border border-gray-200 dark:border-charcoal-800">
+                <span className="text-[10px] font-bold uppercase text-gray-500 px-1">Day:</span>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-2 py-1 rounded-lg border border-gray-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 text-xs font-semibold text-gray-900 dark:text-white"
+                />
+                <button
+                  onClick={() => setSelectedDate(getTodayStr())}
+                  className="px-2 py-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500 hover:text-white rounded-lg text-[10px] font-bold transition-all"
+                >
+                  Today
+                </button>
+              </div>
+
+              {/* Month Filter */}
+              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-charcoal-950 p-1.5 rounded-xl border border-gray-200 dark:border-charcoal-800">
+                <span className="text-[10px] font-bold uppercase text-gray-500 px-1">Month:</span>
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-2 py-1 rounded-lg border border-gray-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 text-xs font-semibold text-gray-900 dark:text-white"
+                />
+                <button
+                  onClick={() => setSelectedMonth(getThisMonthStr())}
+                  className="px-2 py-1 bg-gold-500/10 text-gold-600 dark:text-gold-400 hover:bg-gold-500 hover:text-black rounded-lg text-[10px] font-bold transition-all"
+                >
+                  This Month
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Attendant Profile Strip */}
+          {dashboardData?.attendant && (
+            <div className="bg-gradient-to-r from-purple-900/10 via-purple-600/5 to-transparent dark:from-purple-950/40 dark:via-charcoal-900 dark:to-charcoal-900 p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white font-bold text-lg flex items-center justify-center shadow-md">
+                  {dashboardData.attendant.fullName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
+                      {dashboardData.attendant.fullName}
+                    </h2>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                      {dashboardData.attendant.attendantId}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      dashboardData.attendant.status === 'active'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-600 dark:bg-charcoal-800 dark:text-gray-400'
+                    }`}>
+                      {dashboardData.attendant.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex flex-wrap items-center gap-2">
+                    <span>📱 {dashboardData.attendant.mobile}</span>
+                    <span>•</span>
+                    <span>
+                      🪑 {dashboardData.attendant.assignedChair?.name || dashboardData.attendant.assignedChair?.chairNumber || 'Floating Station'}
+                    </span>
+                    {Array.isArray(dashboardData.attendant.specialization) && (
+                      <>
+                        <span>•</span>
+                        <span>✂️ {dashboardData.attendant.specialization.join(', ')}</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <div className="bg-white dark:bg-charcoal-950 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-charcoal-800">
+                  <span className="block text-[10px] font-sans text-gray-400 uppercase font-semibold">Base Salary</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    ₹ {Number(dashboardData.attendant.baseSalary || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="bg-white dark:bg-charcoal-950 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-charcoal-800">
+                  <span className="block text-[10px] font-sans text-gray-400 uppercase font-semibold">Commission Rate</span>
+                  <span className="font-bold text-gold-600 dark:text-gold-400">
+                    {dashboardData.attendant.commissionPercentage || 10}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 1: DAY-WISE BREAKDOWN (Only bills allocated to this attendant) */}
+          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 shadow-sm p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-gray-200 dark:border-charcoal-800 gap-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-purple-500" />
+                  Day-Wise Payment & Revenue Breakdown: {selectedDate}
+                </h3>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  Strictly calculated from bills allocated to {dashboardData?.attendant?.fullName || 'this attendant'}.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                  {dashboardData?.day?.billsCount || 0} Bills Completed
+                </span>
+              </div>
+            </div>
+
+            {/* Day KPI Cards (Day Total, UPI, Cash, Card, Split) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {/* Day Total */}
+              <div className="bg-emerald-500/5 dark:bg-emerald-950/20 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800/40">
+                <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Day Total Sales</span>
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <p className="text-lg font-black font-mono text-emerald-700 dark:text-emerald-300 mt-1">
+                  ₹ {Number(dashboardData?.day?.total || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Commission: ₹ {Number(dashboardData?.day?.commission || 0).toLocaleString('en-IN')}
+                </span>
+              </div>
+
+              {/* Day UPI */}
+              <div className="bg-purple-500/5 dark:bg-purple-950/20 p-3.5 rounded-xl border border-purple-200 dark:border-purple-800/40">
+                <div className="flex items-center justify-between text-purple-600 dark:text-purple-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Day UPI</span>
+                  <QrCode className="w-4 h-4" />
+                </div>
+                <p className="text-lg font-black font-mono text-purple-700 dark:text-purple-300 mt-1">
+                  ₹ {Number(dashboardData?.day?.upi || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Direct: ₹{dashboardData?.day?.directUpi || 0} | Split: ₹{dashboardData?.day?.splitUpi || 0}
+                </span>
+              </div>
+
+              {/* Day Cash */}
+              <div className="bg-blue-500/5 dark:bg-blue-950/20 p-3.5 rounded-xl border border-blue-200 dark:border-blue-800/40">
+                <div className="flex items-center justify-between text-blue-600 dark:text-blue-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Day Cash</span>
+                  <Wallet className="w-4 h-4" />
+                </div>
+                <p className="text-lg font-black font-mono text-blue-700 dark:text-blue-300 mt-1">
+                  ₹ {Number(dashboardData?.day?.cash || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Direct: ₹{dashboardData?.day?.directCash || 0} | Split: ₹{dashboardData?.day?.splitCash || 0}
+                </span>
+              </div>
+
+              {/* Day Card */}
+              <div className="bg-amber-500/5 dark:bg-amber-950/20 p-3.5 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                <div className="flex items-center justify-between text-amber-600 dark:text-amber-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Day Card</span>
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <p className="text-lg font-black font-mono text-amber-700 dark:text-amber-300 mt-1">
+                  ₹ {Number(dashboardData?.day?.card || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Direct: ₹{dashboardData?.day?.directCard || 0} | Split: ₹{dashboardData?.day?.splitCard || 0}
+                </span>
+              </div>
+
+              {/* Day Split Payments */}
+              <div className="bg-cyan-500/5 dark:bg-cyan-950/20 p-3.5 rounded-xl border border-cyan-200 dark:border-cyan-800/40 col-span-2 sm:col-span-1">
+                <div className="flex items-center justify-between text-cyan-600 dark:text-cyan-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Day Split Payments</span>
+                  <Layers className="w-4 h-4" />
+                </div>
+                <p className="text-lg font-black font-mono text-cyan-700 dark:text-cyan-300 mt-1">
+                  ₹ {Number(dashboardData?.day?.split || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Split across multiple modes
+                </span>
+              </div>
+            </div>
+
+            {/* Allocated Bills Ledger Table for Selected Date */}
+            <div>
+              <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between">
+                <span>Completed Bills for {dashboardData?.attendant?.fullName} on {selectedDate}:</span>
+                <span className="text-[11px] font-normal text-gray-400">
+                  {dashboardData?.day?.bills?.length || 0} invoices
+                </span>
+              </h4>
+
+              <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-charcoal-800">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-charcoal-950/70 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200 dark:border-charcoal-800">
+                      <th className="py-2.5 px-3">Invoice #</th>
+                      <th className="py-2.5 px-3">Time</th>
+                      <th className="py-2.5 px-3">Customer</th>
+                      <th className="py-2.5 px-3">Station</th>
+                      <th className="py-2.5 px-3">Payment Method</th>
+                      <th className="py-2.5 px-3 text-right">Grand Total</th>
+                      <th className="py-2.5 px-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800">
+                    {dashboardData?.day?.bills?.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="text-center py-6 text-gray-400">
+                          No bills completed by this attendant on {selectedDate}.
+                        </td>
+                      </tr>
+                    ) : (
+                      dashboardData?.day?.bills?.map((b) => (
+                        <tr key={b._id} className="hover:bg-gray-50/70 dark:hover:bg-charcoal-800/40">
+                          <td className="py-2.5 px-3 font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {b.billNumber}
+                          </td>
+                          <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
+                            {b.billDate ? new Date(b.billDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="font-semibold text-gray-900 dark:text-white">{b.customerName}</div>
+                            {b.customerMobile && <div className="text-[10px] text-gray-400 font-mono">{b.customerMobile}</div>}
+                          </td>
+                          <td className="py-2.5 px-3 text-gray-600 dark:text-gray-400">
+                            {b.chairName}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                              b.paymentMethod === 'Cash'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
+                                : b.paymentMethod === 'UPI'
+                                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300'
+                                : b.paymentMethod === 'Split payment'
+                                ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300'
+                                : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                            }`}>
+                              {b.paymentMethod}
+                            </span>
+                            {b.paymentMethod === 'Split payment' && b.splitPaymentDetails && (
+                              <div className="text-[9px] text-gray-400 mt-0.5 font-mono">
+                                {b.splitPaymentDetails.cash > 0 && `Cash: ₹${b.splitPaymentDetails.cash} `}
+                                {b.splitPaymentDetails.upi > 0 && `UPI: ₹${b.splitPaymentDetails.upi} `}
+                                {(b.splitPaymentDetails.debitCard > 0 || b.splitPaymentDetails.creditCard > 0) &&
+                                  `Card: ₹${(b.splitPaymentDetails.debitCard || 0) + (b.splitPaymentDetails.creditCard || 0)}`}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-gray-900 dark:text-white">
+                            ₹ {Number(b.grandTotal || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <button
+                              onClick={() => {
+                                setPreviewBill(b);
+                                setPreviewOpen(true);
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-charcoal-800"
+                              title="View Bill Details"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: OVERALL MONTH-WISE BREAKDOWN (Only bills allocated to this attendant) */}
+          <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 shadow-sm p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-gray-200 dark:border-charcoal-800 gap-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                  <BarChart className="w-4 h-4 text-gold-500" />
+                  Overall Month-Wise Breakdown: {selectedMonth}
+                </h3>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  Full month performance & commission ledger for {dashboardData?.attendant?.fullName}.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                  {dashboardData?.month?.billsCount || 0} Total Month Bills
+                </span>
+              </div>
+            </div>
+
+            {/* Month KPI Cards (Month Total, UPI, Cash, Card, Split, Commission, Net Salary) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {/* Month Total */}
+              <div className="bg-emerald-500/5 dark:bg-emerald-950/20 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  Month Total
+                </span>
+                <p className="text-lg font-black font-mono text-emerald-700 dark:text-emerald-300 mt-1">
+                  ₹ {Number(dashboardData?.month?.total || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">{dashboardData?.month?.billsCount || 0} Bills</span>
+              </div>
+
+              {/* Month UPI */}
+              <div className="bg-purple-500/5 dark:bg-purple-950/20 p-3.5 rounded-xl border border-purple-200 dark:border-purple-800/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                  Month UPI
+                </span>
+                <p className="text-lg font-black font-mono text-purple-700 dark:text-purple-300 mt-1">
+                  ₹ {Number(dashboardData?.month?.upi || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Direct: ₹{dashboardData?.month?.directUpi || 0} | Split: ₹{dashboardData?.month?.splitUpi || 0}
+                </span>
+              </div>
+
+              {/* Month Cash */}
+              <div className="bg-blue-500/5 dark:bg-blue-950/20 p-3.5 rounded-xl border border-blue-200 dark:border-blue-800/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                  Month Cash
+                </span>
+                <p className="text-lg font-black font-mono text-blue-700 dark:text-blue-300 mt-1">
+                  ₹ {Number(dashboardData?.month?.cash || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Direct: ₹{dashboardData?.month?.directCash || 0} | Split: ₹{dashboardData?.month?.splitCash || 0}
+                </span>
+              </div>
+
+              {/* Month Card */}
+              <div className="bg-amber-500/5 dark:bg-amber-950/20 p-3.5 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  Month Card
+                </span>
+                <p className="text-lg font-black font-mono text-amber-700 dark:text-amber-300 mt-1">
+                  ₹ {Number(dashboardData?.month?.card || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Direct: ₹{dashboardData?.month?.directCard || 0} | Split: ₹{dashboardData?.month?.splitCard || 0}
+                </span>
+              </div>
+
+              {/* Month Split */}
+              <div className="bg-cyan-500/5 dark:bg-cyan-950/20 p-3.5 rounded-xl border border-cyan-200 dark:border-cyan-800/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                  Month Split
+                </span>
+                <p className="text-lg font-black font-mono text-cyan-700 dark:text-cyan-300 mt-1">
+                  ₹ {Number(dashboardData?.month?.split || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">Combined methods</span>
+              </div>
+
+              {/* Commission Earned */}
+              <div className="bg-gold-500/10 dark:bg-gold-500/20 p-3.5 rounded-xl border border-gold-300 dark:border-gold-800/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-gold-600 dark:text-gold-400">
+                  Commission Earned
+                </span>
+                <p className="text-lg font-black font-mono text-gold-600 dark:text-gold-400 mt-1">
+                  ₹ {Number(dashboardData?.month?.commissionEarned || 0).toLocaleString('en-IN')}
+                </p>
+                <span className="text-[10px] text-gray-400">
+                  Rate: {dashboardData?.month?.commissionRate || 10}%
+                </span>
+              </div>
+            </div>
+
+            {/* Estimated Total Month Payout Highlight Banner */}
+            <div className="p-3.5 bg-gray-50 dark:bg-charcoal-950 rounded-xl border border-gray-200 dark:border-charcoal-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-gold-500" />
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Estimated Take-Home for {selectedMonth}:
+                </span>
+                <span className="font-mono text-gray-500">
+                  Base (₹{Number(dashboardData?.month?.baseSalary || 0).toLocaleString('en-IN')}) + Commission (₹{Number(dashboardData?.month?.commissionEarned || 0).toLocaleString('en-IN')})
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-base font-extrabold font-mono text-purple-600 dark:text-purple-400">
+                  = ₹ {Number(dashboardData?.month?.estimatedNetSalary || 0).toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            {/* Day-by-Day Monthly Trend Chart */}
+            {dashboardData?.month?.dailyBreakdown?.length > 0 && (
+              <div className="pt-2">
+                <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-3">
+                  Day-by-Day Revenue & Payment Methods Trend:
+                </h4>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[...(dashboardData.month.dailyBreakdown || [])].reverse()}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(d) => d.slice(8, 10)}
+                      />
+                      <YAxis tick={{ fontSize: 10 }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#18181B',
+                          borderColor: '#3F3F46',
+                          borderRadius: '0.75rem',
+                          color: '#fff',
+                          fontSize: '11px',
+                        }}
+                        formatter={(value) => [`₹ ${Number(value).toLocaleString('en-IN')}`]}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      <Bar dataKey="cash" name="Cash" fill="#3B82F6" stackId="a" />
+                      <Bar dataKey="upi" name="UPI" fill="#8B5CF6" stackId="a" />
+                      <Bar dataKey="card" name="Card" fill="#F59E0B" stackId="a" />
+                      <Bar dataKey="split" name="Split" fill="#06B6D4" stackId="a" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {/* Month Day-by-Day Ledger Table */}
+            <div>
+              <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
+                Month Day-by-Day Breakdown Ledger:
+              </h4>
+
+              <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-charcoal-800">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-charcoal-950/70 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200 dark:border-charcoal-800">
+                      <th className="py-2.5 px-3">Date</th>
+                      <th className="py-2.5 px-3 text-center">Bills Count</th>
+                      <th className="py-2.5 px-3 text-right">Cash (₹)</th>
+                      <th className="py-2.5 px-3 text-right">UPI (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Card (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Split (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Day Total (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Commission (₹)</th>
+                      <th className="py-2.5 px-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800">
+                    {dashboardData?.month?.dailyBreakdown?.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="text-center py-6 text-gray-400">
+                          No bills completed by this attendant in {selectedMonth}.
+                        </td>
+                      </tr>
+                    ) : (
+                      dashboardData?.month?.dailyBreakdown?.map((d) => (
+                        <tr key={d.date} className="hover:bg-gray-50/70 dark:hover:bg-charcoal-800/40">
+                          <td className="py-2.5 px-3 font-mono font-bold text-gray-900 dark:text-white">
+                            {d.date}
+                          </td>
+                          <td className="py-2.5 px-3 text-center font-mono">
+                            {d.billsCount}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-blue-600 dark:text-blue-400">
+                            {Number(d.cash || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-purple-600 dark:text-purple-400">
+                            {Number(d.upi || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-amber-600 dark:text-amber-400">
+                            {Number(d.card || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-cyan-600 dark:text-cyan-400">
+                            {Number(d.split || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                            ₹ {Number(d.total || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-gold-600 dark:text-gold-400">
+                            ₹ {Number(d.commission || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <button
+                              onClick={() => setSelectedDate(d.date)}
+                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-charcoal-800 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900/40 dark:hover:text-purple-300 transition-all"
+                              title="Inspect this day's bills above"
+                            >
+                              Inspect Day
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -964,6 +1603,19 @@ export const AttendantsPage = () => {
             </form>
           </div>
         </div>
+      )}
+
+
+      {/* Bill Preview Modal */}
+      {previewOpen && previewBill && (
+        <BillPreviewModal
+          isOpen={previewOpen}
+          onClose={() => {
+            setPreviewOpen(false);
+            setPreviewBill(null);
+          }}
+          bill={previewBill}
+        />
       )}
 
       {/* Delete Confirmation Modal */}
