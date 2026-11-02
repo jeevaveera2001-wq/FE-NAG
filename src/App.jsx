@@ -22,6 +22,7 @@ import ReportsPage from './pages/ReportsPage';
 import ActivityLogsPage from './pages/ActivityLogsPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminManagementPage from './pages/AdminManagementPage';
+import ExpensesPage from './pages/ExpensesPage';
 
 // Protected Route Guard
 const ProtectedLayout = () => {
@@ -126,6 +127,14 @@ export const App = () => {
           }
         />
         <Route path="/customers" element={<CustomersPage />} />
+        <Route
+          path="/expenses"
+          element={
+            <RoleGuard allowedRoles={['reception', 'admin', 'superadmin']} fallbackPath="/billing">
+              <ExpensesPage />
+            </RoleGuard>
+          }
+        />
 
         {/* Super Admin Only */}
         <Route
