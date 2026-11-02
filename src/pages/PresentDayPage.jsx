@@ -90,8 +90,8 @@ export const PresentDayPage = () => {
   const today = data?.today || { total: 0, bills: 0, cash: 0, upi: 0, card: 0, avgBill: 0 };
   const yesterday = data?.yesterday || { total: 0, bills: 0, cash: 0, upi: 0, card: 0, avgBill: 0 };
   const trends = data?.trends || {};
-  const hourlyData = data?.hourlyData || [];
-  const paymentData = data?.paymentData || [];
+  const hourlyData = data?.hourlyComparison || data?.hourlyData || [];
+  const paymentData = data?.paymentComparison || data?.paymentData || [];
 
   return (
     <div className="space-y-3 lg:space-y-3.5 lg:h-[calc(100vh-5.5rem)] lg:overflow-hidden flex flex-col justify-between overflow-y-auto">
@@ -335,7 +335,7 @@ export const PresentDayPage = () => {
             </div>
           </div>
 
-          <div className="h-44 sm:h-48 w-full">
+          <div className="h-48 sm:h-52 w-full min-h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={hourlyData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -401,7 +401,7 @@ export const PresentDayPage = () => {
             </p>
           </div>
 
-          <div className="h-44 sm:h-48 w-full">
+          <div className="h-48 sm:h-52 w-full min-h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={paymentData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.15} />
