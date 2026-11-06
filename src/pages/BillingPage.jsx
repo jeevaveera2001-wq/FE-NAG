@@ -59,10 +59,10 @@ export const BillingPage = () => {
   // Discount & Tax Settings
   const [discountType, setDiscountType] = useState('fixed'); // 'fixed' | 'percentage'
   const [discountValue, setDiscountValue] = useState(0);
-  const [taxPercent, setTaxPercent] = useState(18); // Default 18% GST
+  const [taxPercent, setTaxPercent] = useState(0);
 
-  // Payment State
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  // Payment State - Required & starts empty
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [amountReceived, setAmountReceived] = useState('');
   const [splitPayment, setSplitPayment] = useState({
     cash: 0,
@@ -101,9 +101,6 @@ export const BillingPage = () => {
       if (attRes.data.success) setAttendants(attRes.data.attendants);
       if (setRes.data.success) {
         setSettings(setRes.data.settings);
-        if (setRes.data.settings.defaultGstPercent !== undefined) {
-          setTaxPercent(setRes.data.settings.defaultGstPercent);
-        }
       }
     } catch (err) {
       console.error('Failed to fetch POS master data:', err);
@@ -169,7 +166,8 @@ export const BillingPage = () => {
         unitPrice,
         discountPercent: 0,
         discountAmount: 0,
-        taxPercent: item.taxPercentage || 18,
+        taxPercent: 0,
+        taxAmount: 0,
         totalAmount: unitPrice,
       };
       return [...prev, newItem];
@@ -219,10 +217,10 @@ export const BillingPage = () => {
   discountTotal = Math.min(discountTotal, subtotal);
 
   const taxableAmount = Math.max(0, subtotal - discountTotal);
-  const totalTax = (taxableAmount * (Number(taxPercent) || 0)) / 100;
-  const cgst = totalTax / 2;
-  const sgst = totalTax / 2;
-  const grandTotal = Math.round(taxableAmount + totalTax);
+  const totalTax = 0;
+  const cgst = 0;
+  const sgst = 0;
+  const grandTotal = Math.round(taxableAmount);
 
   const effectiveAmountReceived = amountReceived === '' ? grandTotal : Number(amountReceived);
   const balanceDue = Math.max(0, grandTotal - effectiveAmountReceived);
@@ -239,7 +237,7 @@ export const BillingPage = () => {
     setCartItems([]);
     setDiscountValue(0);
     setAmountReceived('');
-    setPaymentMethod('Cash');
+    setPaymentMethod('');
     setSplitPayment({ cash: 0, upi: 0, debitCard: 0, creditCard: 0, other: 0 });
   };
 
@@ -263,6 +261,19 @@ export const BillingPage = () => {
     if (!selectedAttendant) {
       toast.error('Please select an Attendant / Stylist');
       return;
+    }
+
+    if (!paymentMethod) {
+      toast.error('Payment Method is required! Please select a payment option (Cash, UPI, Card, etc.)');
+      return;
+    }
+
+    if (paymentMethod === 'Split payment') {
+      const splitSum = (splitPayment.cash || 0) + (splitPayment.upi || 0) + (splitPayment.debitCard || 0) + (splitPayment.creditCard || 0) + (splitPayment.other || 0);
+      if (splitSum !== grandTotal) {
+        toast.error(`Split payment breakdown total (₹${splitSum}) must equal Grand Total (₹${grandTotal})`);
+        return;
+      }
     }
 
     try {
@@ -743,50 +754,47 @@ export const BillingPage = () => {
               )}
             </div>
 
-            {/* Discount & Tax Controls */}
-            <div className="pt-2 border-t border-gray-100 dark:border-charcoal-800 grid grid-cols-2 gap-2.5 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Discount
-                </label>
-                <div className="flex items-center gap-1">
-                  <select
-                    value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value)}
-                    className="px-2 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white focus:outline-none"
-                  >
-                    <option value="fixed">Flat ₹</option>
-                    <option value="percentage">%</option>
-                  </select>
-                  <input
-                    type="number"
-                    value={discountValue}
-                    onChange={(e) => setDiscountValue(Math.max(0, Number(e.target.value)))}
-                    className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono focus:outline-none"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  GST Tax %
-                </label>
+            {/* Discount Control */}
+            <div className="pt-2 border-t border-gray-100 dark:border-charcoal-800 text-xs">
+              <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Discount
+              </label>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value)}
+                  className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white focus:outline-none"
+                >
+                  <option value="fixed">Flat ₹</option>
+                  <option value="percentage">%</option>
+                </select>
                 <input
                   type="number"
-                  value={taxPercent}
-                  onChange={(e) => setTaxPercent(Math.max(0, Number(e.target.value)))}
-                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono focus:outline-none"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(Math.max(0, Number(e.target.value)))}
+                  className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono focus:outline-none"
+                  placeholder="0"
                 />
               </div>
             </div>
 
-            {/* Payment Method Selector */}
+            {/* Payment Method Selector (Required) */}
             <div className="space-y-1.5 text-xs">
-              <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                Payment Method
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                  Payment Method <span className="text-red-500 font-bold">* (Required)</span>
+                </label>
+                {!paymentMethod && (
+                  <span className="text-[10px] text-red-500 font-bold animate-pulse">
+                    Please select
+                  </span>
+                )}
+              </div>
+              <div className={`grid grid-cols-3 gap-1.5 p-1 rounded-xl transition-all ${
+                !paymentMethod
+                  ? 'border border-dashed border-red-300 dark:border-red-800/80 bg-red-50/30 dark:bg-red-950/20'
+                  : ''
+              }`}>
                 {['Cash', 'UPI', 'Debit card', 'Credit card', 'Split payment', 'Other'].map((method) => (
                   <button
                     key={method}
@@ -794,8 +802,8 @@ export const BillingPage = () => {
                     onClick={() => setPaymentMethod(method)}
                     className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all border ${
                       paymentMethod === method
-                        ? 'bg-black text-white dark:bg-gold-500 dark:text-black border-black dark:border-gold-500 shadow-xs'
-                        : 'bg-gray-50 dark:bg-charcoal-800 border-gray-200 dark:border-charcoal-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100'
+                        ? 'bg-black text-white dark:bg-gold-500 dark:text-black border-black dark:border-gold-500 shadow-xs ring-1 ring-gold-400/40'
+                        : 'bg-gray-50 dark:bg-charcoal-800 border-gray-200 dark:border-charcoal-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:border-gray-300'
                     }`}
                   >
                     {method}
@@ -845,10 +853,6 @@ export const BillingPage = () => {
                   <span>- ₹ {discountTotal.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                <span>Tax (CGST 9% + SGST 9%):</span>
-                <span>₹ {totalTax.toFixed(2)}</span>
-              </div>
               <div className="flex justify-between text-sm font-extrabold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-charcoal-800">
                 <span>GRAND TOTAL:</span>
                 <span className="text-gold-600 dark:text-gold-400 font-mono text-base">₹ {grandTotal}</span>

@@ -44,7 +44,7 @@ export const ProductsPage = () => {
     sellingPrice: 0,
     currentStock: 0,
     minStockWarning: 5,
-    taxPercentage: 18,
+    taxPercentage: 0,
     isActive: true,
   });
 
@@ -106,7 +106,7 @@ export const ProductsPage = () => {
       sellingPrice: 0,
       currentStock: 10,
       minStockWarning: 5,
-      taxPercentage: 18,
+      taxPercentage: 0,
       isActive: true,
     });
     setProductModalOpen(true);
@@ -123,7 +123,7 @@ export const ProductsPage = () => {
       sellingPrice: product.sellingPrice,
       currentStock: product.currentStock,
       minStockWarning: product.minStockWarning,
-      taxPercentage: product.taxPercentage,
+      taxPercentage: 0,
       isActive: product.isActive,
     });
     setProductModalOpen(true);
@@ -214,7 +214,6 @@ export const ProductsPage = () => {
       'Selling Price (₹)': p.sellingPrice,
       'Current Stock': p.currentStock,
       'Min Stock Warning': p.minStockWarning,
-      'GST %': p.taxPercentage,
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
@@ -485,7 +484,7 @@ export const ProductsPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className={`grid ${editingProduct ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
                 {!editingProduct && (
                   <div>
                     <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Initial Stock</label>
@@ -504,16 +503,6 @@ export const ProductsPage = () => {
                     type="number"
                     value={formData.minStockWarning}
                     onChange={(e) => setFormData({ ...formData, minStockWarning: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">GST Tax %</label>
-                  <input
-                    type="number"
-                    value={formData.taxPercentage}
-                    onChange={(e) => setFormData({ ...formData, taxPercentage: Number(e.target.value) })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono"
                   />
                 </div>

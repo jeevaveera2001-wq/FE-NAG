@@ -20,7 +20,7 @@ import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 
 export const ReportsPage = () => {
-  const [reportTab, setReportTab] = useState('sales'); // 'sales' | 'services' | 'products' | 'attendants' | 'gst' | 'cancelled' | 'inventory'
+  const [reportTab, setReportTab] = useState('sales'); // 'sales' | 'services' | 'products' | 'attendants' | 'cancelled' | 'inventory'
   const [period, setPeriod] = useState('this_month'); // 'today' | 'this_week' | 'this_month' | 'last_month' | 'custom'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -41,7 +41,6 @@ export const ReportsPage = () => {
       if (reportTab === 'services') endpoint = '/reports/services';
       if (reportTab === 'products') endpoint = '/reports/products';
       if (reportTab === 'attendants') endpoint = '/reports/attendants';
-      if (reportTab === 'gst') endpoint = '/reports/tax-gst';
       if (reportTab === 'cancelled') endpoint = '/reports/cancelled-bills';
       if (reportTab === 'inventory') endpoint = '/reports/inventory';
 
@@ -79,7 +78,6 @@ export const ReportsPage = () => {
         Mobile: b.customer?.mobile,
         'Subtotal (₹)': b.subtotal,
         'Discount (₹)': b.discountTotal,
-        'Tax (₹)': b.taxTotal,
         'Grand Total (₹)': b.grandTotal,
         'Payment Method': b.paymentMethod,
       }));
@@ -104,16 +102,6 @@ export const ReportsPage = () => {
         'Completed Services': a.servicesCompleted,
         'Total Sales (₹)': a.totalSales,
         'Commission Earned (₹)': a.commissionEarned,
-      }));
-    } else if (reportTab === 'gst' && reportData.bills) {
-      exportRows = reportData.bills.map((b) => ({
-        'Bill No': b.billNumber,
-        Date: new Date(b.billDate).toLocaleDateString('en-IN'),
-        'Taxable Value (₹)': b.subtotal - (b.discountTotal || 0),
-        'CGST 9% (₹)': b.cgst,
-        'SGST 9% (₹)': b.sgst,
-        'Total GST (₹)': b.taxTotal,
-        'Invoice Total (₹)': b.grandTotal,
       }));
     } else if (reportTab === 'cancelled' && reportData.bills) {
       exportRows = reportData.bills.map((b) => ({
@@ -148,7 +136,7 @@ export const ReportsPage = () => {
             Executive Reports & Analytics Engine
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Audit-grade performance summaries, GST compliance, commissions, and cancellations
+            Audit-grade performance summaries, revenue streams, commissions, and cancellations
           </p>
         </div>
 
@@ -178,7 +166,6 @@ export const ReportsPage = () => {
           { id: 'services', label: 'Service-Wise Sales', icon: Scissors },
           { id: 'products', label: 'Product-Wise Sales', icon: Package },
           { id: 'attendants', label: 'Attendant Commission', icon: Users },
-          { id: 'gst', label: 'Tax & GST Statement', icon: Receipt },
           { id: 'cancelled', label: 'Cancelled Bills Audit', icon: Ban },
           { id: 'inventory', label: 'Inventory Valuation', icon: DollarSign },
         ].map((tab) => (
@@ -267,17 +254,11 @@ export const ReportsPage = () => {
             {/* 1. Sales & Revenue Summary */}
             {reportTab === 'sales' && (
               <div className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
                     <span className="text-[11px] text-gray-500 font-semibold uppercase">Total Gross Turnover</span>
                     <h4 className="text-xl font-bold text-gray-900 dark:text-white mt-1 font-mono">
                       ₹ {Number(reportData?.data?.totalSales || 0).toLocaleString('en-IN')}
-                    </h4>
-                  </div>
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
-                    <span className="text-[11px] text-gray-500 font-semibold uppercase">Total Tax (GST)</span>
-                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mt-1 font-mono">
-                      ₹ {Number(reportData?.data?.totalTax || 0).toLocaleString('en-IN')}
                     </h4>
                   </div>
                   <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
@@ -304,7 +285,6 @@ export const ReportsPage = () => {
                         <th className="py-2.5 px-3">Attendant</th>
                         <th className="py-2.5 px-3 text-right">Subtotal</th>
                         <th className="py-2.5 px-3 text-right">Discount</th>
-                        <th className="py-2.5 px-3 text-right">GST Tax</th>
                         <th className="py-2.5 px-3 text-right">Grand Total</th>
                         <th className="py-2.5 px-3">Payment</th>
                       </tr>
@@ -318,7 +298,6 @@ export const ReportsPage = () => {
                           <td className="py-2.5 px-3">{b.attendant?.name || '-'}</td>
                           <td className="py-2.5 px-3 text-right font-mono">₹ {b.subtotal}</td>
                           <td className="py-2.5 px-3 text-right font-mono text-red-500">₹ {b.discountTotal}</td>
-                          <td className="py-2.5 px-3 text-right font-mono">₹ {b.taxTotal}</td>
                           <td className="py-2.5 px-3 text-right font-mono font-bold text-gray-900 dark:text-white">
                             ₹ {b.grandTotal}
                           </td>
@@ -422,60 +401,6 @@ export const ReportsPage = () => {
             )}
 
             {/* 5. Tax / GST Compliance Report */}
-            {reportTab === 'gst' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
-                    <span className="text-[11px] text-gray-500 font-semibold uppercase">Total Taxable Value</span>
-                    <h4 className="text-xl font-bold font-mono mt-1">₹ {Number(reportData?.summary?.totalTaxable || 0).toFixed(2)}</h4>
-                  </div>
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
-                    <span className="text-[11px] text-gray-500 font-semibold uppercase">CGST (9%) Collected</span>
-                    <h4 className="text-xl font-bold font-mono mt-1 text-blue-600">₹ {Number(reportData?.summary?.totalCGST || 0).toFixed(2)}</h4>
-                  </div>
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
-                    <span className="text-[11px] text-gray-500 font-semibold uppercase">SGST (9%) Collected</span>
-                    <h4 className="text-xl font-bold font-mono mt-1 text-blue-600">₹ {Number(reportData?.summary?.totalSGST || 0).toFixed(2)}</h4>
-                  </div>
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-charcoal-950 border dark:border-charcoal-800">
-                    <span className="text-[11px] text-gray-500 font-semibold uppercase">Total GST Remittance</span>
-                    <h4 className="text-xl font-bold font-mono mt-1 text-gold-500">₹ {Number(reportData?.summary?.totalTax || 0).toFixed(2)}</h4>
-                  </div>
-                </div>
-
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-charcoal-950 text-gray-500 uppercase tracking-wider font-semibold border-b dark:border-charcoal-800">
-                      <th className="py-2.5 px-3">Date</th>
-                      <th className="py-2.5 px-3">Invoice No</th>
-                      <th className="py-2.5 px-3">Customer</th>
-                      <th className="py-2.5 px-3 text-right">Taxable Amt</th>
-                      <th className="py-2.5 px-3 text-right">CGST (9%)</th>
-                      <th className="py-2.5 px-3 text-right">SGST (9%)</th>
-                      <th className="py-2.5 px-3 text-right">Total GST</th>
-                      <th className="py-2.5 px-3 text-right">Invoice Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800">
-                    {reportData?.bills?.map((b) => (
-                      <tr key={b._id}>
-                        <td className="py-2.5 px-3 text-gray-500">{new Date(b.billDate).toLocaleDateString('en-IN')}</td>
-                        <td className="py-2.5 px-3 font-mono font-bold">{b.billNumber}</td>
-                        <td className="py-2.5 px-3">{b.customer?.name}</td>
-                        <td className="py-2.5 px-3 text-right font-mono">₹ {b.subtotal - (b.discountTotal || 0)}</td>
-                        <td className="py-2.5 px-3 text-right font-mono">₹ {b.cgst}</td>
-                        <td className="py-2.5 px-3 text-right font-mono">₹ {b.sgst}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-semibold">₹ {b.taxTotal}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-gray-900 dark:text-white">
-                          ₹ {b.grandTotal}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
             {/* 6. Cancelled Bills Report */}
             {reportTab === 'cancelled' && (
               <table className="w-full text-left text-xs border-collapse">

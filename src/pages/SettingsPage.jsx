@@ -27,9 +27,9 @@ export const SettingsPage = () => {
     address: 'Nagulan salon , Indur , Dharmapuri , PIN 636803',
     gstNumber: '',
     isGstEnabled: false,
-    defaultGstPercent: 18,
-    cgstPercent: 9,
-    sgstPercent: 9,
+    defaultGstPercent: 0,
+    cgstPercent: 0,
+    sgstPercent: 0,
     currencySymbol: '₹',
     receiptFooterMessage: 'Thank you for visiting NAGULAN Unisex Salon',
     receiptSubFooter: 'Visit Again',
@@ -119,7 +119,7 @@ export const SettingsPage = () => {
           Salon Profile & Application Settings
         </h2>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          Configure business details, official brand banner, GST parameters, and receipt policy notes
+          Configure business details, official brand banner, billing preferences, and receipt policy notes
         </p>
       </div>
 
@@ -214,36 +214,14 @@ export const SettingsPage = () => {
           </div>
         </div>
 
-        {/* GST & Tax Settings */}
+        {/* Billing & Currency Settings */}
         <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 p-5 shadow-sm space-y-4">
           <h3 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-charcoal-800 pb-3">
             <Receipt className="w-4 h-4 text-gold-500" />
-            GST & Tax Configuration
+            Billing & Currency Configuration
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-            <div>
-              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">GSTIN Number</label>
-              <input
-                type="text"
-                value={settings.gstNumber}
-                onChange={(e) => setSettings({ ...settings, gstNumber: e.target.value })}
-                disabled={!isSuperAdmin}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono uppercase disabled:opacity-60"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Default GST Rate (%)</label>
-              <input
-                type="number"
-                value={settings.defaultGstPercent}
-                onChange={(e) => setSettings({ ...settings, defaultGstPercent: Number(e.target.value) })}
-                disabled={!isSuperAdmin}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono disabled:opacity-60"
-              />
-            </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
               <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Currency Symbol</label>
               <input

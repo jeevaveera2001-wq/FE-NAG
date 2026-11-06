@@ -55,7 +55,7 @@ export const ServicesPage = () => {
     duration: 30,
     price: 0,
     discountPrice: 0,
-    taxPercentage: 18,
+    taxPercentage: 0,
     isActive: true,
   });
 
@@ -103,7 +103,7 @@ export const ServicesPage = () => {
       duration: 30,
       price: 0,
       discountPrice: 0,
-      taxPercentage: 18,
+      taxPercentage: 0,
       isActive: true,
     });
     setModalOpen(true);
@@ -119,7 +119,7 @@ export const ServicesPage = () => {
       duration: service.duration || 30,
       price: service.price,
       discountPrice: service.discountPrice || 0,
-      taxPercentage: service.taxPercentage || 18,
+      taxPercentage: 0,
       isActive: service.isActive,
     });
     setModalOpen(true);
@@ -176,7 +176,6 @@ export const ServicesPage = () => {
       'Duration (Mins)': s.duration,
       'Price (₹)': s.price,
       'Discount Price (₹)': s.discountPrice,
-      'GST %': s.taxPercentage,
       Status: s.isActive ? 'Active' : 'Inactive',
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -286,7 +285,6 @@ export const ServicesPage = () => {
                 <th className="py-3.5 px-4">Target Gender</th>
                 <th className="py-3.5 px-4">Duration</th>
                 <th className="py-3.5 px-4 text-right">Base Price</th>
-                <th className="py-3.5 px-4 text-right">Tax (GST)</th>
                 <th className="py-3.5 px-4">Status</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
@@ -295,11 +293,11 @@ export const ServicesPage = () => {
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">Loading services...</td>
+                  <td colSpan={7} className="py-12 text-center text-gray-400">Loading services...</td>
                 </tr>
               ) : services.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">No services found.</td>
+                  <td colSpan={7} className="py-12 text-center text-gray-400">No services found.</td>
                 </tr>
               ) : (
                 services.map((srv) => (
@@ -318,7 +316,6 @@ export const ServicesPage = () => {
                     <td className="py-3.5 px-4 text-right font-mono font-bold text-gray-900 dark:text-white">
                       ₹ {srv.price}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-mono">{srv.taxPercentage}%</td>
                     <td className="py-3.5 px-4">
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -422,7 +419,7 @@ export const ServicesPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Price (₹) *</label>
                   <input
@@ -440,16 +437,6 @@ export const ServicesPage = () => {
                     type="number"
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">GST Tax %</label>
-                  <input
-                    type="number"
-                    value={formData.taxPercentage}
-                    onChange={(e) => setFormData({ ...formData, taxPercentage: Number(e.target.value) })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono"
                   />
                 </div>

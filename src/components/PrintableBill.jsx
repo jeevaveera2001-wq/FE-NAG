@@ -102,20 +102,6 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             </div>
           )}
 
-          {bill.cgst > 0 && (
-            <div className="flex justify-between">
-              <span>CGST (9%):</span>
-              <span>₹{Number(bill.cgst).toFixed(2)}</span>
-            </div>
-          )}
-
-          {bill.sgst > 0 && (
-            <div className="flex justify-between">
-              <span>SGST (9%):</span>
-              <span>₹{Number(bill.sgst).toFixed(2)}</span>
-            </div>
-          )}
-
           <div className="flex justify-between items-center text-xs font-black py-0.5 border-t-2 border-b-2 border-black my-0.5">
             <span className="tracking-wide">GRAND TOTAL:</span>
             <span className="text-sm tracking-tight">₹{Number(bill.grandTotal).toFixed(2)}</span>
@@ -162,7 +148,7 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
 
         <div className="text-right">
           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Invoice Information</h3>
-          <p className="font-bold text-base text-gray-900">Tax Invoice: #{bill.billNumber}</p>
+          <p className="font-bold text-base text-gray-900">Invoice: #{bill.billNumber}</p>
           <p className="text-gray-600">Date: {new Date(bill.billDate).toLocaleString('en-IN')}</p>
         </div>
       </div>
@@ -207,20 +193,6 @@ export const PrintableBill = ({ bill, settings = {}, format = '80mm' }) => {
             <div className="flex justify-between py-1 border-b border-gray-100 text-red-600">
               <span>Discount ({bill.discountType === 'percentage' ? `${bill.discountValue}%` : 'Flat'}):</span>
               <span>- ₹ {Number(bill.discountTotal).toFixed(2)}</span>
-            </div>
-          )}
-
-          {bill.cgst > 0 && (
-            <div className="flex justify-between py-1 border-b border-gray-100">
-              <span className="text-gray-600">CGST (9%):</span>
-              <span>₹ {Number(bill.cgst).toFixed(2)}</span>
-            </div>
-          )}
-
-          {bill.sgst > 0 && (
-            <div className="flex justify-between py-1 border-b border-gray-100">
-              <span className="text-gray-600">SGST (9%):</span>
-              <span>₹ {Number(bill.sgst).toFixed(2)}</span>
             </div>
           )}
 
