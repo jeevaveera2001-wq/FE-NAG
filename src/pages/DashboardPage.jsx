@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/StatCard';
+import { SkeletonCard, SkeletonChart, PulsingBeacon, PullToRefresh } from '../components/loaders';
 import {
   DollarSign,
   Receipt,
@@ -72,8 +73,32 @@ export const DashboardPage = () => {
 
   if (loading) {
     return (
-      <div className="h-[calc(100vh-6rem)] flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-gold-500 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-3.5 p-1">
+        {/* Top Stat Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2">
+            <SkeletonChart title="Sales Trend Pacing" height="h-56" />
+          </div>
+          <div>
+            <SkeletonChart title="Payment Channels" height="h-56" />
+          </div>
+        </div>
+
+        {/* Bottom Metrics Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </div>
     );
   }
@@ -81,7 +106,8 @@ export const DashboardPage = () => {
   const summary = data?.summary || {};
 
   return (
-    <div className="space-y-3 lg:space-y-3.5 lg:h-[calc(100vh-5.5rem)] lg:overflow-hidden flex flex-col justify-between overflow-y-auto">
+    <PullToRefresh onRefresh={fetchMetrics}>
+      <div className="space-y-3 lg:space-y-3.5 lg:h-[calc(100vh-5.5rem)] lg:overflow-hidden flex flex-col justify-between overflow-y-auto">
       {/* Low Stock Warning (if any) */}
       {data?.lowStockProducts?.length > 0 && (
         <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 shrink-0">
@@ -353,7 +379,8 @@ export const DashboardPage = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

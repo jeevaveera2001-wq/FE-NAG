@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
+import { SkeletonTableRow, LoadingButton } from '../components/loaders';
 import {
   UserSquare2,
   Plus,
@@ -219,9 +220,9 @@ export const CustomersPage = () => {
 
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400">Loading customer database...</td>
-                </tr>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonTableRow key={i} cols={7} />
+                ))
               ) : customers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-400">No customers found.</td>

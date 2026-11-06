@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { LoadingButton } from './loaders';
 
 export const CancelBillModal = ({ isOpen, onClose, onConfirm, billNumber, loading = false }) => {
   const [reason, setReason] = useState('');
@@ -65,13 +66,15 @@ export const CancelBillModal = ({ isOpen, onClose, onConfirm, billNumber, loadin
             >
               Close
             </button>
-            <button
+            <LoadingButton
               type="submit"
-              disabled={loading}
-              className="px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-md transition-all flex items-center gap-2"
+              loading={loading}
+              loadingText="Cancelling..."
+              variant="danger"
+              size="sm"
             >
-              {loading ? 'Cancelling...' : 'Confirm Cancellation'}
-            </button>
+              Confirm Cancellation
+            </LoadingButton>
           </div>
         </form>
       </div>

@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import BillPreviewModal from '../components/BillPreviewModal';
+import { SkeletonGrid, SpinnerLoader, LoadingButton } from '../components/loaders';
 import {
   Scissors,
   Package,
@@ -83,10 +84,13 @@ export const BillingPage = () => {
   const [generatedBill, setGeneratedBill] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [mobileSearching, setMobileSearching] = useState(false);
 
   // Load master records
   const loadMasterData = async () => {
     try {
+      setCatalogLoading(true);
       const [srvRes, prdRes, chrRes, attRes, setRes] = await Promise.all([
         api.get('/services?limit=100&isActive=true'),
         api.get('/products?limit=100&isActive=true'),
@@ -105,6 +109,8 @@ export const BillingPage = () => {
     } catch (err) {
       console.error('Failed to fetch POS master data:', err);
       toast.error('Failed to load catalog');
+    } finally {
+      setCatalogLoading(false);
     }
   };
 
@@ -117,6 +123,7 @@ export const BillingPage = () => {
     setCustomerMobile(mobileVal);
     if (mobileVal.trim().length >= 10) {
       try {
+        setMobileSearching(true);
         const res = await api.get(`/customers/search/${mobileVal.trim()}`);
         if (res.data.success && res.data.customer) {
           setCustomerName(res.data.customer.name);
@@ -125,6 +132,8 @@ export const BillingPage = () => {
         }
       } catch (err) {
         // Customer not found yet, will create new
+      } finally {
+        setMobileSearching(false);
       }
     }
   };
@@ -494,7 +503,27 @@ export const BillingPage = () => {
 
             {/* Items Grid View (Fills height without exiting screen size) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3 h-[calc(100vh-235px)] min-h-[460px] overflow-y-auto pr-1">
-              {catalogTab === 'services' ? (
+              {catalogLoading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="p-3 sm:p-3.5 rounded-xl bg-gray-50 dark:bg-charcoal-950/70 border border-gray-200 dark:border-charcoal-800 space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="h-3.5 w-20 rounded-md bg-gray-200 dark:bg-charcoal-800 animate-pulse" />
+                        <span className="h-3.5 w-10 rounded-md bg-gray-200 dark:bg-charcoal-800 animate-pulse" />
+                      </div>
+                      <div className="h-4 w-3/4 rounded-md bg-gray-200 dark:bg-charcoal-800 animate-pulse" />
+                      <div className="h-3 w-1/2 rounded-md bg-gray-200 dark:bg-charcoal-800 animate-pulse" />
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-charcoal-800">
+                      <span className="h-4 w-14 rounded-md bg-gray-200 dark:bg-charcoal-800 animate-pulse" />
+                      <span className="h-7 w-7 rounded-lg bg-gray-200 dark:bg-charcoal-800 animate-pulse" />
+                    </div>
+                  </div>
+                ))
+              ) : catalogTab === 'services' ? (
                 filteredServices.length > 0 ? (
                   filteredServices.map((srv) => (
                     <div
@@ -619,9 +648,14 @@ export const BillingPage = () => {
                     onChange={(e) => handleMobileLookup(e.target.value)}
                     placeholder="10-digit mobile"
                     maxLength={10}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono focus:ring-2 focus:ring-gold-500 focus:outline-none"
+                    className="w-full pl-8 pr-8 py-1.5 text-xs rounded-xl border border-gray-300 dark:border-charcoal-700 bg-white dark:bg-charcoal-950 text-gray-900 dark:text-white font-mono focus:ring-2 focus:ring-gold-500 focus:outline-none"
                     required
                   />
+                  {mobileSearching && (
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                      <SpinnerLoader size="xs" variant="gold" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -861,37 +895,39 @@ export const BillingPage = () => {
 
             {/* Action Buttons */}
             <div className="space-y-2 pt-2">
-              <button
+              <LoadingButton
                 type="button"
                 onClick={() => handleGenerateBill('Completed')}
-                disabled={isSubmitting || cartItems.length === 0}
-                className="w-full py-3 px-4 rounded-xl bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-extrabold text-sm uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={cartItems.length === 0}
+                loading={isSubmitting}
+                loadingText="Generating & Printing..."
+                icon={CheckCircle2}
+                variant="primary"
+                size="lg"
+                className="w-full font-extrabold uppercase tracking-wider shadow-lg"
               >
-                {isSubmitting ? (
-                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Generate & Print Bill</span>
-                  </>
-                )}
-              </button>
+                Generate & Print Bill
+              </LoadingButton>
 
               <div className="grid grid-cols-2 gap-2">
-                <button
+                <LoadingButton
                   type="button"
                   onClick={() => handleGenerateBill('Draft')}
-                  disabled={isSubmitting || cartItems.length === 0}
-                  className="py-2 px-3 rounded-lg border border-gray-300 dark:border-charcoal-700 hover:bg-gray-100 dark:hover:bg-charcoal-800 text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center justify-center gap-1.5 transition-all"
+                  disabled={cartItems.length === 0}
+                  loading={isSubmitting}
+                  loadingText="Saving..."
+                  icon={Save}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs font-semibold"
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save as Draft</span>
-                </button>
+                  Save as Draft
+                </LoadingButton>
 
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="py-2 px-3 rounded-lg border border-gray-300 dark:border-charcoal-700 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5 transition-all"
+                  className="py-2 px-3 rounded-lg border border-gray-300 dark:border-charcoal-700 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Reset Form</span>

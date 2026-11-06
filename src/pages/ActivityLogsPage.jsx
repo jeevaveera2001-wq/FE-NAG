@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
+import { SkeletonTableRow, PullToRefresh } from '../components/loaders';
 import {
   FileSpreadsheet,
   ShieldAlert,
@@ -51,7 +52,8 @@ export const ActivityLogsPage = () => {
   }, [search, actionFilter, entityFilter]);
 
   return (
-    <div className="space-y-5">
+    <PullToRefresh onRefresh={() => fetchLogs(1)}>
+      <div className="space-y-5">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-serif">
@@ -98,11 +100,9 @@ export const ActivityLogsPage = () => {
 
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400 font-sans">
-                    Loading audit trail...
-                  </td>
-                </tr>
+                Array.from({ length: 8 }).map((_, i) => (
+                  <SkeletonTableRow key={i} cols={7} />
+                ))
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-400 font-sans">
@@ -142,7 +142,8 @@ export const ActivityLogsPage = () => {
 
         <Pagination pagination={pagination} onPageChange={(p) => fetchLogs(p)} />
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

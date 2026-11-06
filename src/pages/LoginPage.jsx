@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import NagulanBanner from '../components/NagulanBanner';
-import { Lock, User, Eye, EyeOff, Shield, Sparkles, CheckCircle2 } from 'lucide-react';
+import { LoadingButton } from '../components/loaders';
+import { Lock, User, Eye, EyeOff, Shield, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const LoginPage = () => {
@@ -131,20 +132,17 @@ export const LoginPage = () => {
             </div>
 
             {/* Submit Button */}
-            <button
+            <LoadingButton
               type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold text-sm uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4"
+              loading={loading}
+              loadingText="Authenticating..."
+              icon={CheckCircle2}
+              variant="primary"
+              size="lg"
+              className="w-full mt-4 uppercase tracking-wider font-bold shadow-lg"
             >
-              {loading ? (
-                <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-              ) : (
-                <>
-                  <span>Sign In to Terminal</span>
-                  <CheckCircle2 className="w-4 h-4" />
-                </>
-              )}
-            </button>
+              Sign In to Terminal
+            </LoadingButton>
           </form>
         </div>
 

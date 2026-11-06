@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
+import { SkeletonCard, SkeletonChart, PulsingBeacon, PullToRefresh } from '../components/loaders';
 import {
   CalendarDays,
   TrendingUp,
@@ -81,8 +82,21 @@ export const PresentDayPage = () => {
 
   if (loading) {
     return (
-      <div className="h-[calc(100vh-6rem)] flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-gold-500 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-3.5 p-1">
+        {/* Top 5 Stat Cards Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <SkeletonChart title="Hourly Sales Pacing (Today vs Yesterday)" height="h-64" />
+          <SkeletonChart title="Payment Channels (Today vs Yesterday)" height="h-64" />
+        </div>
       </div>
     );
   }
@@ -94,20 +108,20 @@ export const PresentDayPage = () => {
   const paymentData = data?.paymentComparison || data?.paymentData || [];
 
   return (
-    <div className="space-y-3 lg:space-y-3.5 lg:h-[calc(100vh-5.5rem)] lg:overflow-hidden flex flex-col justify-between overflow-y-auto">
-      {/* Top Header Banner */}
-      <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 px-4 py-2.5 sm:py-3 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shrink-0">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-base sm:text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-gold-500" />
-              Present Day Live Overview
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
-              Live Stream
-            </span>
-          </div>
+    <PullToRefresh onRefresh={() => fetchPresentDayData(true)}>
+      <div className="space-y-3 lg:space-y-3.5 lg:h-[calc(100vh-5.5rem)] lg:overflow-hidden flex flex-col justify-between overflow-y-auto">
+        {/* Top Header Banner */}
+        <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 px-4 py-2.5 sm:py-3 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shrink-0">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-base sm:text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-gold-500" />
+                Present Day Live Overview
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
+                <PulsingBeacon color="emerald" size="sm" label="LIVE" />
+              </span>
+            </div>
           <p className="text-[11px] text-gray-400 mt-0.5">
             Real-time performance for{' '}
             <span className="font-semibold text-gray-700 dark:text-gray-200">
@@ -615,7 +629,8 @@ export const PresentDayPage = () => {
           </table>
         </div>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

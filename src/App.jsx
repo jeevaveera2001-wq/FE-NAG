@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 // Components
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
+import { TopProgressBar, FullScreenLoader } from './components/loaders';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -30,11 +31,7 @@ const ProtectedLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-charcoal-950">
-        <div className="w-8 h-8 border-3 border-gold-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <FullScreenLoader message="Loading Salon POS Terminal..." subtext="Authenticating session and permissions" />;
   }
 
   if (!user) {
@@ -43,6 +40,9 @@ const ProtectedLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-charcoal-950 transition-colors">
+      {/* Global Sleek Gold Indeterminate Top Progress Bar */}
+      <TopProgressBar />
+
       {/* Icon-Only Compact Mobile Sidebar & Full Desktop Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 

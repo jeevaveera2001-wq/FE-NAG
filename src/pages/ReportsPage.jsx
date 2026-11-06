@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
+import { SkeletonCard, SkeletonTable, PullToRefresh } from '../components/loaders';
 
 export const ReportsPage = () => {
   const [reportTab, setReportTab] = useState('sales'); // 'sales' | 'services' | 'products' | 'attendants' | 'cancelled' | 'inventory'
@@ -127,7 +128,8 @@ export const ReportsPage = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <PullToRefresh onRefresh={fetchReport}>
+      <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 no-print">
         <div>
@@ -248,7 +250,14 @@ export const ReportsPage = () => {
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-xs text-gray-400">Compiling report data...</div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+            <SkeletonTable rows={6} cols={8} />
+          </div>
         ) : (
           <>
             {/* 1. Sales & Revenue Summary */}
@@ -490,7 +499,8 @@ export const ReportsPage = () => {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

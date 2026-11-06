@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
+import { SkeletonTableRow, PullToRefresh } from '../components/loaders';
 import { CreditCard, Download, FileSpreadsheet, RefreshCw, DollarSign, CheckCircle2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
@@ -76,7 +77,8 @@ export const PaymentsPage = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <PullToRefresh onRefresh={() => fetchPayments(1)}>
+      <div className="space-y-5">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-serif">
@@ -189,11 +191,9 @@ export const PaymentsPage = () => {
 
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
               {loading ? (
-                <tr>
-                  <td colSpan={10} className="py-12 text-center text-gray-400">
-                    Loading payments...
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonTableRow key={i} cols={10} />
+                ))
               ) : payments.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-gray-400">
@@ -256,7 +256,8 @@ export const PaymentsPage = () => {
 
         <Pagination pagination={pagination} onPageChange={(page) => fetchPayments(page)} />
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

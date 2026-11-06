@@ -5,6 +5,7 @@ import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import BillPreviewModal from '../components/BillPreviewModal';
 import CancelBillModal from '../components/CancelBillModal';
+import { SkeletonTableRow, PullToRefresh, InfiniteScrollLoader, LoadingButton } from '../components/loaders';
 import {
   History,
   FileSpreadsheet,
@@ -26,6 +27,7 @@ export const SalesHistoryPage = () => {
 
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 15 });
 
   // Filters State
@@ -91,6 +93,34 @@ export const SalesHistoryPage = () => {
       toast.error('Failed to load sales records');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreBills = async () => {
+    if (loadingMore || pagination.page >= (pagination.totalPages || pagination.pages || 1)) return;
+    try {
+      setLoadingMore(true);
+      const nextPage = pagination.page + 1;
+      const params = {
+        page: nextPage,
+        limit: 15,
+        search,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        paymentMethod: paymentMethod !== 'All' ? paymentMethod : undefined,
+        paymentStatus: paymentStatus !== 'All' ? paymentStatus : undefined,
+        status: status !== 'All' ? status : undefined,
+      };
+
+      const res = await api.get('/bills', { params });
+      if (res.data.success) {
+        setBills((prev) => [...prev, ...(res.data.bills || [])]);
+        setPagination(res.data.pagination);
+      }
+    } catch (err) {
+      console.error('Failed to load more bills:', err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -424,14 +454,9 @@ export const SalesHistoryPage = () => {
 
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
               {loading ? (
-                <tr>
-                  <td colSpan={10} className="py-12 text-center text-gray-400">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-6 h-6 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
-                      <span>Loading sales records...</span>
-                    </div>
-                  </td>
-                </tr>
+                Array.from({ length: 8 }).map((_, i) => (
+                  <SkeletonTableRow key={i} cols={10} />
+                ))
               ) : bills.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-gray-400">
@@ -630,6 +655,15 @@ export const SalesHistoryPage = () => {
           </table>
         </div>
 
+        {/* Infinite Scroll Loader for seamless scrolling */}
+        <InfiniteScrollLoader
+          hasMore={pagination.page < (pagination.totalPages || pagination.pages || 1)}
+          loading={loadingMore}
+          onLoadMore={loadMoreBills}
+          totalCount={pagination.total}
+          currentCount={bills.length}
+        />
+
         {/* Pagination Bar */}
         <Pagination pagination={pagination} onPageChange={(p) => fetchBills(p)} />
       </div>
@@ -742,13 +776,16 @@ export const SalesHistoryPage = () => {
                 >
                   Cancel
                 </button>
-                <button
+                <LoadingButton
                   type="submit"
-                  disabled={!statusNotes.trim() || statusChangeLoading}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 disabled:opacity-50 transition-all shadow-sm"
+                  disabled={!statusNotes.trim()}
+                  loading={statusChangeLoading}
+                  loadingText="Updating Status..."
+                  variant="primary"
+                  size="md"
                 >
-                  {statusChangeLoading ? 'Updating Status...' : 'Confirm Status Change'}
-                </button>
+                  Confirm Status Change
+                </LoadingButton>
               </div>
             </form>
           </div>

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import ConfirmModal from '../components/ConfirmModal';
+import { SkeletonTableRow, LoadingButton } from '../components/loaders';
 import {
   Scissors,
   Plus,
@@ -292,9 +293,9 @@ export const ServicesPage = () => {
 
             <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400">Loading services...</td>
-                </tr>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonTableRow key={i} cols={7} />
+                ))
               ) : services.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-400">No services found.</td>
@@ -474,13 +475,15 @@ export const ServicesPage = () => {
                 >
                   Cancel
                 </button>
-                <button
+                <LoadingButton
                   type="submit"
-                  disabled={isProcessing}
-                  className="px-5 py-2 rounded-lg bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold shadow-md"
+                  loading={isProcessing}
+                  loadingText="Saving..."
+                  variant="primary"
+                  size="md"
                 >
-                  {isProcessing ? 'Saving...' : editingService ? 'Update Service' : 'Add to Menu'}
-                </button>
+                  {editingService ? 'Update Service' : 'Add to Menu'}
+                </LoadingButton>
               </div>
             </form>
           </div>

@@ -4,6 +4,7 @@ import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import SearchBar from '../components/SearchBar';
 import ConfirmModal from '../components/ConfirmModal';
+import { SkeletonCard, LoadingButton, PulsingBeacon } from '../components/loaders';
 import {
   Armchair,
   Plus,
@@ -267,7 +268,9 @@ export const ChairsPage = () => {
       {/* Chairs Visual Grid Map */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {loading ? (
-          <div className="col-span-full py-16 text-center text-xs text-gray-400">Loading stations...</div>
+          Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))
         ) : chairs.length === 0 ? (
           <div className="col-span-full py-16 text-center text-xs text-gray-400">No chairs found.</div>
         ) : (
@@ -444,13 +447,15 @@ export const ChairsPage = () => {
                 >
                   Cancel
                 </button>
-                <button
+                <LoadingButton
                   type="submit"
-                  disabled={isProcessing}
-                  className="px-5 py-2 rounded-lg bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 font-bold shadow-md"
+                  loading={isProcessing}
+                  loadingText="Saving..."
+                  variant="primary"
+                  size="md"
                 >
-                  {isProcessing ? 'Saving...' : 'Save Chair'}
-                </button>
+                  Save Chair
+                </LoadingButton>
               </div>
             </form>
           </div>

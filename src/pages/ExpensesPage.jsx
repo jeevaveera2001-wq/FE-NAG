@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import Pagination from '../components/Pagination';
 import ConfirmModal from '../components/ConfirmModal';
+import { SkeletonCard, SkeletonTableRow, LoadingButton, PullToRefresh } from '../components/loaders';
 import {
   WalletCards,
   Plus,
@@ -975,10 +976,14 @@ export const ExpensesPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800">
-                  {ledgerExpenses.length === 0 ? (
+                  {ledgerLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <SkeletonTableRow key={i} cols={7} />
+                    ))
+                  ) : ledgerExpenses.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="py-8 text-center text-gray-400">
-                        {ledgerLoading ? 'Loading expenses...' : 'No expenses matching the filters.'}
+                        No expenses matching the filters.
                       </td>
                     </tr>
                   ) : (
@@ -1216,13 +1221,15 @@ export const ExpensesPage = () => {
                 >
                   Cancel
                 </button>
-                <button
+                <LoadingButton
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-black text-white dark:bg-gold-500 dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+                  loading={isSubmitting}
+                  loadingText={editingExpense ? 'Saving Changes...' : 'Recording Expense...'}
+                  variant="primary"
+                  size="md"
                 >
-                  {isSubmitting ? 'Saving...' : editingExpense ? 'Save Changes' : 'Record Expense'}
-                </button>
+                  {editingExpense ? 'Save Changes' : 'Record Expense'}
+                </LoadingButton>
               </div>
             </form>
           </div>

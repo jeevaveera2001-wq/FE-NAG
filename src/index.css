@@ -189,3 +189,62 @@
     height: auto !important;
   }
 }
+
+/* ==========================================================================
+   Nagulan Salon UI Themed Loaders & Animation Keyframes
+   ========================================================================== */
+
+/* Shimmer Animation for Skeleton Loaders */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.8s infinite linear;
+}
+
+/* Indeterminate Progress Bar Animation */
+@keyframes indeterminate-bar {
+  0% {
+    left: -35%;
+    right: 100%;
+  }
+  60% {
+    left: 100%;
+    right: -90%;
+  }
+  100% {
+    left: 100%;
+    right: -90%;
+  }
+}
+
+.animate-indeterminate {
+  animation: indeterminate-bar 1.6s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+}
+
+/* Pulsing Radar Ring */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+

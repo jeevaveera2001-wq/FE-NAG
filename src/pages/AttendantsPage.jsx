@@ -5,6 +5,7 @@ import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import ConfirmModal from '../components/ConfirmModal';
 import BillPreviewModal from '../components/BillPreviewModal';
+import { SkeletonTableRow, SkeletonCard, LoadingButton, PulsingBeacon } from '../components/loaders';
 import {
   Users,
   ArrowRight,
@@ -495,9 +496,9 @@ export const AttendantsPage = () => {
 
               <tbody className="divide-y divide-gray-100 dark:divide-charcoal-800 text-gray-700 dark:text-gray-300">
                 {loading ? (
-                  <tr>
-                    <td colSpan={11} className="py-12 text-center text-gray-400">Loading attendants...</td>
-                  </tr>
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <SkeletonTableRow key={i} cols={11} />
+                  ))
                 ) : attendants.length === 0 ? (
                   <tr>
                     <td colSpan={11} className="py-12 text-center text-gray-400">No attendants found.</td>

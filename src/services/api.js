@@ -7,22 +7,47 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Attach Access Token
+// Progress Bar & Global Loading Event Emitters
+let activeRequests = 0;
+
+const notifyStart = () => {
+  activeRequests++;
+  if (activeRequests === 1 && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('salon:request-start'));
+  }
+};
+
+const notifyEnd = () => {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0 && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('salon:request-end'));
+  }
+};
+
+// Request Interceptor: Attach Access Token & trigger Progress Bar
 api.interceptors.request.use(
   (config) => {
+    notifyStart();
     const token = localStorage.getItem('nagulan_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    notifyEnd();
+    return Promise.reject(error);
+  }
 );
 
-// Response Interceptor: Auto Refresh Token on 401
+// Response Interceptor: Auto Refresh Token on 401 & finish Progress Bar
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    notifyEnd();
+    return response;
+  },
   async (error) => {
+    notifyEnd();
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {

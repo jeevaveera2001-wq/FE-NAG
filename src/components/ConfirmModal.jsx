@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, X } from 'lucide-react';
+import { LoadingButton } from './loaders';
 
 export const ConfirmModal = ({
   isOpen,
@@ -38,18 +39,16 @@ export const ConfirmModal = ({
           >
             {cancelText}
           </button>
-          <button
+          <LoadingButton
             type="button"
             onClick={onConfirm}
-            disabled={loading}
-            className={`px-4 py-1.5 text-xs font-bold rounded-lg shadow-sm transition-all ${
-              isDanger
-                ? 'bg-red-600 hover:bg-red-700 text-white'
-                : 'bg-black dark:bg-gold-500 text-white dark:text-black hover:bg-charcoal-800 dark:hover:bg-gold-400'
-            }`}
+            loading={loading}
+            loadingText="Processing..."
+            variant={isDanger ? 'danger' : 'primary'}
+            size="sm"
           >
-            {loading ? 'Processing...' : confirmText}
-          </button>
+            {confirmText}
+          </LoadingButton>
         </div>
       </div>
     </div>
