@@ -56,7 +56,7 @@ api.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const res = await axios.post('/api/auth/refresh-token', { token: refreshToken });
+          const res = await axios.post(`${api.defaults.baseURL}/auth/refresh-token`, { token: refreshToken });
           if (res.data.success) {
             localStorage.setItem('nagulan_token', res.data.accessToken);
             if (res.data.refreshToken) {
