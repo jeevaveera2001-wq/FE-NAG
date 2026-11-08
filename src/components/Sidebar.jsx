@@ -37,7 +37,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     { label: 'Dashboard', path: '/', icon: LayoutDashboard, visible: true },
     { label: 'Billing / POS', path: '/billing', icon: Receipt, visible: true },
     { label: 'Sales History', path: '/sales', icon: History, visible: true },
-    { label: 'Payments', path: '/payments', icon: CreditCard, visible: !isReception },
+    { label: 'Payments', path: '/payments', icon: CreditCard, visible: true },
     { label: 'Services & Menu', path: '/services', icon: Scissors, visible: true },
     { label: 'Products & Stock', path: '/products', icon: Package, visible: true },
     { label: 'Chairs & Stations', path: '/chairs', icon: Armchair, visible: true },

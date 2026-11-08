@@ -103,7 +103,7 @@ export const App = () => {
         <Route
           path="/payments"
           element={
-            <RoleGuard allowedRoles={['admin', 'superadmin']} fallbackPath="/billing">
+            <RoleGuard allowedRoles={['admin', 'superadmin', 'reception']} fallbackPath="/billing">
               <PaymentsPage />
             </RoleGuard>
           }
