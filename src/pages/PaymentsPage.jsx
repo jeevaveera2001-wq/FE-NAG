@@ -6,20 +6,14 @@ import Pagination from '../components/Pagination';
 import { SkeletonTableRow, SkeletonCard, PullToRefresh } from '../components/loaders';
 import {
   CreditCard,
-  Download,
   FileSpreadsheet,
   RefreshCw,
-  DollarSign,
   QrCode,
   Banknote,
   Layers,
   Calendar,
   CalendarDays,
-  CheckCircle2,
-  Clock,
-  ChevronRight,
-  TrendingUp,
-  Filter,
+  Wallet,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
@@ -74,6 +68,61 @@ const formatDateLabel = (dateStr) => {
   }
 };
 
+// Client-side fallback calculator if summary is missing from response
+const computeFallbackSummary = (paymentsList) => {
+  let totalAmount = 0, cash = 0, upi = 0, card = 0, split = 0;
+  let directCash = 0, directUpi = 0, directCard = 0;
+  let splitCash = 0, splitUpi = 0, splitCard = 0;
+
+  for (const p of paymentsList || []) {
+    const amount = Number(p.amountPaid ?? p.totalBillAmount ?? 0);
+    totalAmount += amount;
+    const pm = (p.paymentMethod || '').toLowerCase();
+    if (pm.includes('cash')) {
+      directCash += amount;
+      cash += amount;
+    } else if (pm.includes('upi')) {
+      directUpi += amount;
+      upi += amount;
+    } else if (pm.includes('card')) {
+      directCard += amount;
+      card += amount;
+    } else if (pm.includes('split')) {
+      split += amount;
+      const sp = p.splitDetails || {};
+      const spC = Number(sp.cash || 0);
+      const spU = Number(sp.upi || 0);
+      const spCd = Number(sp.debitCard || 0) + Number(sp.creditCard || 0);
+
+      splitCash += spC;
+      splitUpi += spU;
+      splitCard += spCd;
+
+      cash += spC;
+      upi += spU;
+      card += spCd;
+    } else {
+      directCash += amount;
+      cash += amount;
+    }
+  }
+
+  return {
+    totalAmount: Math.round(totalAmount * 100) / 100,
+    cash: Math.round(cash * 100) / 100,
+    upi: Math.round(upi * 100) / 100,
+    card: Math.round(card * 100) / 100,
+    split: Math.round(split * 100) / 100,
+    directCash: Math.round(directCash * 100) / 100,
+    directUpi: Math.round(directUpi * 100) / 100,
+    directCard: Math.round(directCard * 100) / 100,
+    splitCash: Math.round(splitCash * 100) / 100,
+    splitUpi: Math.round(splitUpi * 100) / 100,
+    splitCard: Math.round(splitCard * 100) / 100,
+    totalTransactions: (paymentsList || []).length,
+  };
+};
+
 export const PaymentsPage = () => {
   const [payments, setPayments] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -89,7 +138,7 @@ export const PaymentsPage = () => {
   const todayStr = getTodayIST();
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
-  const [activePreset, setActivePreset] = useState('today'); // 'today' | 'yesterday' | 'month' | 'all' | 'custom'
+  const [activePreset, setActivePreset] = useState('today');
 
   const { socket } = useSocket();
 
@@ -107,11 +156,14 @@ export const PaymentsPage = () => {
       };
 
       const res = await api.get('/payments', { params });
-      if (res.data.success) {
-        setPayments(res.data.payments || []);
-        setPagination(res.data.pagination || { page: 1, totalPages: 1, total: 0, limit: 15 });
-        setSummary(res.data.summary || null);
-        setDateBreakdown(res.data.dateBreakdown || []);
+      if (res.data?.success) {
+        const rawPayments = Array.isArray(res.data.payments) ? res.data.payments : [];
+        setPayments(rawPayments);
+        setPagination(
+          res.data.pagination || { page: 1, totalPages: 1, total: rawPayments.length, limit: 15 }
+        );
+        setSummary(res.data.summary || computeFallbackSummary(rawPayments));
+        setDateBreakdown(Array.isArray(res.data.dateBreakdown) ? res.data.dateBreakdown : []);
       }
     } catch (err) {
       console.error('Failed to load payments:', err);
@@ -170,26 +222,26 @@ export const PaymentsPage = () => {
   };
 
   const exportToExcel = () => {
-    if (payments.length === 0) {
+    if (!payments || payments.length === 0) {
       toast.error('No payments to export');
       return;
     }
 
     const exportData = payments.map((p) => ({
-      'Payment ID': p.paymentId,
-      'Bill Number': p.billNumber,
-      Date: new Date(p.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      'Payment ID': p.paymentId || '-',
+      'Bill Number': p.billNumber || '-',
+      Date: p.createdAt ? new Date(p.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '-',
       Customer: p.customer?.name || '-',
       Mobile: p.customer?.mobile || '-',
-      'Total Amount (₹)': p.totalBillAmount,
-      'Amount Paid (₹)': p.amountPaid,
-      'Balance (₹)': p.balanceAmount,
-      'Payment Method': p.paymentMethod,
-      'Split Cash (₹)': p.splitDetails?.cash || 0,
-      'Split UPI (₹)': p.splitDetails?.upi || 0,
-      'Split Card (₹)': (p.splitDetails?.debitCard || 0) + (p.splitDetails?.creditCard || 0),
+      'Total Amount (₹)': Number(p.totalBillAmount || p.amountPaid || 0).toFixed(2),
+      'Amount Paid (₹)': Number(p.amountPaid || 0).toFixed(2),
+      'Balance (₹)': Number(p.balanceAmount || 0).toFixed(2),
+      'Payment Method': p.paymentMethod || '-',
+      'Split Cash (₹)': Number(p.splitDetails?.cash || 0).toFixed(2),
+      'Split UPI (₹)': Number(p.splitDetails?.upi || 0).toFixed(2),
+      'Split Card (₹)': Number((p.splitDetails?.debitCard || 0) + (p.splitDetails?.creditCard || 0)).toFixed(2),
       'Transaction Ref ID': p.transactionRefId || '-',
-      Status: p.paymentStatus,
+      Status: p.paymentStatus || 'Paid',
       'Received By': p.receivedBy?.fullName || '-',
     }));
 
@@ -207,6 +259,22 @@ export const PaymentsPage = () => {
   };
 
   const isSingleDate = Boolean(startDate && endDate && startDate === endDate);
+
+  // Safe numerical extractions for UI cards
+  const totalAmount = Number(summary?.totalAmount || 0);
+  const upiAmount = Number(summary?.upi || 0);
+  const cashAmount = Number(summary?.cash || 0);
+  const cardAmount = Number(summary?.card || 0);
+  const splitAmount = Number(summary?.split || 0);
+
+  const directUpi = Number(summary?.directUpi || 0);
+  const splitUpi = Number(summary?.splitUpi || 0);
+  const directCash = Number(summary?.directCash || 0);
+  const splitCash = Number(summary?.splitCash || 0);
+  const directCard = Number(summary?.directCard || 0);
+  const splitCard = Number(summary?.splitCard || 0);
+
+  const totalTxnCount = summary?.totalTransactions ?? payments.length ?? 0;
 
   return (
     <PullToRefresh onRefresh={() => fetchPayments(1)}>
@@ -303,7 +371,7 @@ export const PaymentsPage = () => {
                 type="date"
                 value={isSingleDate ? startDate : ''}
                 onChange={(e) => handleParticularDateChange(e.target.value)}
-                className="px-2.5 py-1.5 rounded-lg border border-gold-500/50 dark:border-gold-500/40 bg-gold-50/30 dark:bg-charcoal-950 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-gold-500"
+                className="px-2.5 py-1.5 rounded-lg border border-gold-500/50 dark:border-gold-500/40 bg-gold-50/30 dark:bg-charcoal-950 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-gold-500 cursor-pointer"
                 title="Choose a specific date"
               />
             </div>
@@ -383,7 +451,7 @@ export const PaymentsPage = () => {
                 : 'All Time Overall Report'}
             </span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gold-500/15 text-gold-600 dark:text-gold-400 border border-gold-500/20">
-              {summary?.totalTransactions ?? payments.length} Bills
+              {totalTxnCount} Bills
             </span>
           </div>
 
@@ -418,11 +486,11 @@ export const PaymentsPage = () => {
                 <Wallet className="w-4 h-4 text-gold-500" />
               </div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-gray-900 dark:text-white">
-                ₹ {Number(summary?.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹ {totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 flex items-center justify-between">
                 <span>All payment methods</span>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{summary?.totalTransactions || 0} txn</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">{totalTxnCount} txn</span>
               </p>
             </div>
 
@@ -436,11 +504,11 @@ export const PaymentsPage = () => {
                 <QrCode className="w-4 h-4 text-purple-500" />
               </div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-gray-900 dark:text-white">
-                ₹ {Number(summary?.upi || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹ {upiAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                Direct: ₹{Number(summary?.directUpi || 0).toFixed(0)}
-                {summary?.splitUpi > 0 && <span className="text-purple-600 dark:text-purple-400"> | Split: ₹{summary.splitUpi.toFixed(0)}</span>}
+                Direct: ₹{directUpi.toFixed(0)}
+                {splitUpi > 0 && <span className="text-purple-600 dark:text-purple-400"> | Split: ₹{splitUpi.toFixed(0)}</span>}
               </p>
             </div>
 
@@ -454,11 +522,11 @@ export const PaymentsPage = () => {
                 <Banknote className="w-4 h-4 text-emerald-500" />
               </div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-gray-900 dark:text-white">
-                ₹ {Number(summary?.cash || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹ {cashAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                Direct: ₹{Number(summary?.directCash || 0).toFixed(0)}
-                {summary?.splitCash > 0 && <span className="text-emerald-600 dark:text-emerald-400"> | Split: ₹{summary.splitCash.toFixed(0)}</span>}
+                Direct: ₹{directCash.toFixed(0)}
+                {splitCash > 0 && <span className="text-emerald-600 dark:text-emerald-400"> | Split: ₹{splitCash.toFixed(0)}</span>}
               </p>
             </div>
 
@@ -472,11 +540,11 @@ export const PaymentsPage = () => {
                 <CreditCard className="w-4 h-4 text-blue-500" />
               </div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-gray-900 dark:text-white">
-                ₹ {Number(summary?.card || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹ {cardAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                Direct: ₹{Number(summary?.directCard || 0).toFixed(0)}
-                {summary?.splitCard > 0 && <span className="text-blue-600 dark:text-blue-400"> | Split: ₹{summary.splitCard.toFixed(0)}</span>}
+                Direct: ₹{directCard.toFixed(0)}
+                {splitCard > 0 && <span className="text-blue-600 dark:text-blue-400"> | Split: ₹{splitCard.toFixed(0)}</span>}
               </p>
             </div>
 
@@ -490,11 +558,11 @@ export const PaymentsPage = () => {
                 <Layers className="w-4 h-4 text-amber-500" />
               </div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-gray-900 dark:text-white">
-                ₹ {Number(summary?.split || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹ {splitAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 truncate">
-                {summary?.split > 0
-                  ? `Cash: ₹${summary.splitCash.toFixed(0)} • UPI: ₹${summary.splitUpi.toFixed(0)}`
+                {splitAmount > 0
+                  ? `Cash: ₹${splitCash.toFixed(0)} • UPI: ₹${splitUpi.toFixed(0)}`
                   : 'Multi-mode transactions'}
               </p>
             </div>
@@ -502,7 +570,7 @@ export const PaymentsPage = () => {
         )}
 
         {/* Date-wise Breakdown Table ("Particular Dates of Payments in Total for Selected Dates") */}
-        {dateBreakdown.length > 0 && (
+        {dateBreakdown && dateBreakdown.length > 0 && (
           <div className="bg-white dark:bg-charcoal-900 rounded-2xl border border-gray-200 dark:border-charcoal-800 shadow-sm overflow-hidden">
             <div className="p-3.5 border-b border-gray-200 dark:border-charcoal-800 flex items-center justify-between">
               <div>
@@ -557,22 +625,22 @@ export const PaymentsPage = () => {
                           </div>
                         </td>
                         <td className="py-2.5 px-3.5 text-right font-mono font-extrabold text-gold-600 dark:text-gold-400 whitespace-nowrap">
-                          ₹ {Number(d.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          ₹ {Number(d.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-purple-600 dark:text-purple-400 whitespace-nowrap">
-                          ₹ {Number(d.upi).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          ₹ {Number(d.upi || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                          ₹ {Number(d.cash).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          ₹ {Number(d.cash || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                          ₹ {Number(d.card).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          ₹ {Number(d.card || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-amber-600 dark:text-amber-400 whitespace-nowrap">
-                          ₹ {Number(d.split).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          ₹ {Number(d.split || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-2.5 px-3.5 text-center font-semibold text-gray-600 dark:text-gray-400">
-                          {d.count}
+                          {d.count || 0}
                         </td>
                         <td className="py-2.5 px-3.5 text-center">
                           <button
@@ -640,7 +708,7 @@ export const PaymentsPage = () => {
                   Array.from({ length: 6 }).map((_, i) => (
                     <SkeletonTableRow key={i} cols={10} />
                   ))
-                ) : payments.length === 0 ? (
+                ) : !payments || payments.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="py-12 text-center text-gray-400">
                       No payment records found for the selected criteria.
@@ -651,45 +719,47 @@ export const PaymentsPage = () => {
                     const isSplit = (p.paymentMethod || '').toLowerCase().includes('split');
                     const sp = p.splitDetails || {};
                     return (
-                      <tr key={p._id} className="hover:bg-gray-50 dark:hover:bg-charcoal-800/40 transition-colors">
+                      <tr key={p._id || p.paymentId} className="hover:bg-gray-50 dark:hover:bg-charcoal-800/40 transition-colors">
                         <td className="py-3 px-3.5 font-mono font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                          {p.paymentId}
+                          {p.paymentId || '-'}
                         </td>
                         <td className="py-3 px-3.5 font-mono text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                          {p.billNumber}
+                          {p.billNumber || '-'}
                         </td>
                         <td className="py-3 px-3.5 whitespace-nowrap text-gray-500">
-                          {new Date(p.createdAt).toLocaleString('en-IN', {
-                            timeZone: 'Asia/Kolkata',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {p.createdAt
+                            ? new Date(p.createdAt).toLocaleString('en-IN', {
+                                timeZone: 'Asia/Kolkata',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : '-'}
                         </td>
                         <td className="py-3 px-3.5">
                           <span className="font-semibold text-gray-900 dark:text-white block">{p.customer?.name || 'Walk-in'}</span>
                           <span className="text-[10px] text-gray-500">{p.customer?.mobile || '-'}</span>
                         </td>
                         <td className="py-3 px-3.5 text-right font-mono font-semibold">
-                          ₹ {Number(p.totalBillAmount).toFixed(2)}
+                          ₹ {Number(p.totalBillAmount ?? p.amountPaid ?? 0).toFixed(2)}
                         </td>
                         <td className="py-3 px-3.5 text-right font-mono font-bold text-green-600 dark:text-green-400">
-                          ₹ {Number(p.amountPaid).toFixed(2)}
+                          ₹ {Number(p.amountPaid ?? 0).toFixed(2)}
                         </td>
                         <td className="py-3 px-3.5 text-right font-mono font-semibold text-amber-600 dark:text-amber-400">
-                          ₹ {Number(p.balanceAmount).toFixed(2)}
+                          ₹ {Number(p.balanceAmount ?? 0).toFixed(2)}
                         </td>
                         <td className="py-3 px-3.5">
                           <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-charcoal-800 text-gray-800 dark:text-gray-300">
-                            {p.paymentMethod}
+                            {p.paymentMethod || 'Unknown'}
                           </span>
                           {isSplit && (
                             <div className="text-[9px] text-gray-500 font-mono mt-0.5">
-                              {sp.cash > 0 && <span>Cash: ₹{sp.cash} </span>}
-                              {sp.upi > 0 && <span>UPI: ₹{sp.upi} </span>}
-                              {(sp.debitCard > 0 || sp.creditCard > 0) && (
-                                <span>Card: ₹{(sp.debitCard || 0) + (sp.creditCard || 0)}</span>
+                              {Number(sp.cash || 0) > 0 && <span>Cash: ₹{sp.cash} </span>}
+                              {Number(sp.upi || 0) > 0 && <span>UPI: ₹{sp.upi} </span>}
+                              {Number((sp.debitCard || 0) + (sp.creditCard || 0)) > 0 && (
+                                <span>Card: ₹{(Number(sp.debitCard) || 0) + (Number(sp.creditCard) || 0)}</span>
                               )}
                             </div>
                           )}
@@ -702,7 +772,7 @@ export const PaymentsPage = () => {
                                 : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'
                             }`}
                           >
-                            {p.paymentStatus}
+                            {p.paymentStatus || 'Paid'}
                           </span>
                         </td>
                         <td className="py-3 px-3.5 text-gray-500">{p.receivedBy?.fullName || '-'}</td>

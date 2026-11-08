@@ -1,15 +1,15 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://be-nag.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://be-nag.onrender.com/api/:path*"
     },
     {
-      "source": "/uploads/(.*)",
-      "destination": "https://be-nag.onrender.com/uploads/$1"
+      "source": "/uploads/:path*",
+      "destination": "https://be-nag.onrender.com/uploads/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
