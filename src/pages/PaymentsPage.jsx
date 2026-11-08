@@ -71,8 +71,8 @@ const formatDateLabel = (dateStr) => {
 
 // Client-side fallback calculator if summary is missing from response
 const computeFallbackSummary = (paymentsList) => {
-  let totalAmount = 0, cash = 0, upi = 0, card = 0, split = 0;
-  let directCash = 0, directUpi = 0, directCard = 0;
+  let totalAmount = 0;
+  let directCash = 0, directUpi = 0, directCard = 0, split = 0;
   let splitCash = 0, splitUpi = 0, splitCard = 0;
 
   for (const p of paymentsList || []) {
@@ -81,13 +81,10 @@ const computeFallbackSummary = (paymentsList) => {
     const pm = (p.paymentMethod || '').toLowerCase();
     if (pm.includes('cash')) {
       directCash += amount;
-      cash += amount;
     } else if (pm.includes('upi')) {
       directUpi += amount;
-      upi += amount;
     } else if (pm.includes('card')) {
       directCard += amount;
-      card += amount;
     } else if (pm.includes('split')) {
       split += amount;
       const sp = p.splitDetails || {};
@@ -98,21 +95,16 @@ const computeFallbackSummary = (paymentsList) => {
       splitCash += spC;
       splitUpi += spU;
       splitCard += spCd;
-
-      cash += spC;
-      upi += spU;
-      card += spCd;
     } else {
       directCash += amount;
-      cash += amount;
     }
   }
 
   return {
     totalAmount: Math.round(totalAmount * 100) / 100,
-    cash: Math.round(cash * 100) / 100,
-    upi: Math.round(upi * 100) / 100,
-    card: Math.round(card * 100) / 100,
+    cash: Math.round(directCash * 100) / 100,
+    upi: Math.round(directUpi * 100) / 100,
+    card: Math.round(directCard * 100) / 100,
     split: Math.round(split * 100) / 100,
     directCash: Math.round(directCash * 100) / 100,
     directUpi: Math.round(directUpi * 100) / 100,
@@ -120,6 +112,9 @@ const computeFallbackSummary = (paymentsList) => {
     splitCash: Math.round(splitCash * 100) / 100,
     splitUpi: Math.round(splitUpi * 100) / 100,
     splitCard: Math.round(splitCard * 100) / 100,
+    netCash: Math.round((directCash + splitCash) * 100) / 100,
+    netUpi: Math.round((directUpi + splitUpi) * 100) / 100,
+    netCard: Math.round((directCard + splitCard) * 100) / 100,
     totalTransactions: (paymentsList || []).length,
   };
 };
@@ -266,18 +261,24 @@ export const PaymentsPage = () => {
   const isSingleDate = Boolean(startDate && endDate && startDate === endDate);
 
   // Safe numerical extractions for UI cards
-  const totalAmount = Number(summary?.totalAmount || 0);
-  const upiAmount = Number(summary?.upi || 0);
-  const cashAmount = Number(summary?.cash || 0);
-  const cardAmount = Number(summary?.card || 0);
-  const splitAmount = Number(summary?.split || 0);
-
-  const directUpi = Number(summary?.directUpi || 0);
+  const directUpi = Number(summary?.directUpi ?? (summary?.upi || 0));
   const splitUpi = Number(summary?.splitUpi || 0);
-  const directCash = Number(summary?.directCash || 0);
+  const directCash = Number(summary?.directCash ?? (summary?.cash || 0));
   const splitCash = Number(summary?.splitCash || 0);
-  const directCard = Number(summary?.directCard || 0);
+  const directCard = Number(summary?.directCard ?? (summary?.card || 0));
   const splitCard = Number(summary?.splitCard || 0);
+
+  // Method payments (mutually exclusive: Cash + UPI + Card + Split === Total)
+  const cashAmount = directCash;
+  const upiAmount = directUpi;
+  const cardAmount = directCard;
+  const splitAmount = Number(summary?.split || 0);
+  const totalAmount = Number(summary?.totalAmount || (cashAmount + upiAmount + cardAmount + splitAmount));
+
+  // Settlement channel totals (Cash in Drawer vs Online in Bank)
+  const netCash = Number(summary?.netCash ?? (directCash + splitCash));
+  const netUpi = Number(summary?.netUpi ?? (directUpi + splitUpi));
+  const netCard = Number(summary?.netCard ?? (directCard + splitCard));
 
   const totalTxnCount = summary?.totalTransactions ?? payments.length ?? 0;
 
@@ -525,8 +526,8 @@ export const PaymentsPage = () => {
                 ₹ {upiAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                Direct: ₹{directUpi.toFixed(0)}
-                {splitUpi > 0 && <span className="text-purple-600 dark:text-purple-400"> | Split: ₹{splitUpi.toFixed(0)}</span>}
+                Direct UPI bills
+                {splitUpi > 0 && <span className="text-purple-600 dark:text-purple-400"> (incl. split: ₹{netUpi.toFixed(0)})</span>}
               </p>
             </div>
 
@@ -543,8 +544,8 @@ export const PaymentsPage = () => {
                 ₹ {cashAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                Direct: ₹{directCash.toFixed(0)}
-                {splitCash > 0 && <span className="text-emerald-600 dark:text-emerald-400"> | Split: ₹{splitCash.toFixed(0)}</span>}
+                Direct Cash bills
+                {splitCash > 0 && <span className="text-emerald-600 dark:text-emerald-400"> (in drawer: ₹{netCash.toFixed(0)})</span>}
               </p>
             </div>
 
@@ -561,8 +562,8 @@ export const PaymentsPage = () => {
                 ₹ {cardAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                Direct: ₹{directCard.toFixed(0)}
-                {splitCard > 0 && <span className="text-blue-600 dark:text-blue-400"> | Split: ₹{splitCard.toFixed(0)}</span>}
+                Direct Card bills
+                {splitCard > 0 && <span className="text-blue-600 dark:text-blue-400"> (incl. split: ₹{netCard.toFixed(0)})</span>}
               </p>
             </div>
 
@@ -586,6 +587,40 @@ export const PaymentsPage = () => {
             </div>
           </div>
         )}
+
+        {/* Settlement Channels Summary (Drawer Cash vs Digital Bank Account) */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-charcoal-900/90 dark:to-charcoal-950 p-3 rounded-xl border border-gray-200 dark:border-charcoal-800 text-xs flex flex-wrap items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-bold">
+            <span className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Settlement Inflow:</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+              <Banknote className="w-3.5 h-3.5" />
+              <span>Total Cash in Drawer: ₹ {netCash.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span className="text-[10px] text-gray-400 font-sans font-normal">(₹{cashAmount} direct + ₹{splitCash} split)</span>
+            </span>
+            <span className="text-gray-300 dark:text-charcoal-700">|</span>
+            <span className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 font-bold">
+              <QrCode className="w-3.5 h-3.5" />
+              <span>Total UPI in Bank: ₹ {netUpi.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span className="text-[10px] text-gray-400 font-sans font-normal">(₹{upiAmount} direct + ₹{splitUpi} split)</span>
+            </span>
+            {netCard > 0 && (
+              <>
+                <span className="text-gray-300 dark:text-charcoal-700">|</span>
+                <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Card in Bank: ₹ {netCard.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </span>
+              </>
+            )}
+            <span className="text-gray-300 dark:text-charcoal-700">|</span>
+            <span className="flex items-center gap-1.5 text-gold-600 dark:text-gold-400 font-extrabold">
+              <Wallet className="w-3.5 h-3.5" />
+              <span>Grand Total: ₹ {totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </span>
+          </div>
+        </div>
 
         {/* Date-wise Breakdown Table ("Particular Dates of Payments in Total for Selected Dates") */}
         {dateBreakdown && dateBreakdown.length > 0 && (
