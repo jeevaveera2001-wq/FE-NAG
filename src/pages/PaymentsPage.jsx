@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 import { SkeletonTableRow, SkeletonCard, PullToRefresh } from '../components/loaders';
@@ -141,6 +142,7 @@ export const PaymentsPage = () => {
   const [activePreset, setActivePreset] = useState('today');
 
   const { socket } = useSocket();
+  const { isSuperAdmin } = useAuth();
 
   const fetchPayments = async (page = 1) => {
     try {
@@ -197,6 +199,9 @@ export const PaymentsPage = () => {
 
   // Preset handlers
   const handleSelectPreset = (preset) => {
+    if (preset === 'all' && !isSuperAdmin) {
+      return;
+    }
     setActivePreset(preset);
     if (preset === 'today') {
       const t = getTodayIST();
@@ -209,7 +214,7 @@ export const PaymentsPage = () => {
     } else if (preset === 'month') {
       setStartDate(getMonthStartIST());
       setEndDate(getTodayIST());
-    } else if (preset === 'all') {
+    } else if (preset === 'all' && isSuperAdmin) {
       setStartDate('');
       setEndDate('');
     }
@@ -348,17 +353,19 @@ export const PaymentsPage = () => {
               >
                 This Month
               </button>
-              <button
-                type="button"
-                onClick={() => handleSelectPreset('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activePreset === 'all' && !startDate && !endDate
-                    ? 'bg-gold-500 text-black shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
-                }`}
-              >
-                All Time
-              </button>
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activePreset === 'all' && !startDate && !endDate
+                      ? 'bg-gold-500 text-black shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                  }`}
+                >
+                  All Time
+                </button>
+              )}
             </div>
 
             {/* Particular Date Picker */}
@@ -455,13 +462,24 @@ export const PaymentsPage = () => {
             </span>
           </div>
 
-          {(startDate || endDate) && (
-            <button
-              onClick={() => handleSelectPreset('all')}
-              className="text-[11px] font-semibold text-gold-600 dark:text-gold-400 hover:underline cursor-pointer"
-            >
-              Reset to All Time
-            </button>
+          {isSuperAdmin ? (
+            (startDate || endDate) && (
+              <button
+                onClick={() => handleSelectPreset('all')}
+                className="text-[11px] font-semibold text-gold-600 dark:text-gold-400 hover:underline cursor-pointer"
+              >
+                Reset to All Time
+              </button>
+            )
+          ) : (
+            (startDate !== todayStr || endDate !== todayStr) && (
+              <button
+                onClick={() => handleSelectPreset('today')}
+                className="text-[11px] font-semibold text-gold-600 dark:text-gold-400 hover:underline cursor-pointer"
+              >
+                Reset to Today
+              </button>
+            )
           )}
         </div>
 
